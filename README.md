@@ -1,0 +1,1 @@
+# qa-automation-vacancy-homework
