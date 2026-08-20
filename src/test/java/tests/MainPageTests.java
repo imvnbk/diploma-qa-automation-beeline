@@ -3,9 +3,8 @@ package tests;
 import org.junit.jupiter.api.Test;
 import pages.MainPage;
 
-import static com.codeborne.selenide.Selenide.title;
-import static com.codeborne.selenide.WebDriverRunner.url;
-import static org.assertj.core.api.Assertions.assertThat;
+import static com.codeborne.selenide.Selenide.webdriver;
+import static com.codeborne.selenide.WebDriverConditions.urlContaining;
 
 public class MainPageTests extends TestBase {
 
@@ -16,15 +15,13 @@ public class MainPageTests extends TestBase {
         mainPage.openPage()
                 .checkHeaderVisible();
 
-        assertThat(url())
-                .contains("beeline.kz");
+        webdriver().shouldHave(urlContaining("beeline.kz"));
     }
 
     @Test
     void mainPageShouldHaveCorrectTitle() {
-        mainPage.openPage();
-
-        assertThat(title())
-                .containsIgnoringCase("Beeline");
+        mainPage.openPage()
+                .checkTitleContains("Beeline");
     }
+
 }

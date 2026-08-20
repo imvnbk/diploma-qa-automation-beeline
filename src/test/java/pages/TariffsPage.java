@@ -8,11 +8,13 @@ import static com.codeborne.selenide.Selenide.*;
 public class TariffsPage {
 
     private final SelenideElement pageTitle =
-            $("h1");
+            $$("body *")
+                    .filterBy(text("Тарифы для смартфона"))
+                    .first();
 
     private final SelenideElement premiumFamilyTariff =
             $$("body *")
-                    .filterBy(text("Тарифы для смартфона"))
+                    .filterBy(text("Премиум Семья х6"))
                     .first();
 
     public TariffsPage openPage() {

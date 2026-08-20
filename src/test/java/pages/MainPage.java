@@ -18,4 +18,16 @@ public class MainPage {
         header.shouldBe(visible);
         return this;
     }
+
+    // The homepage sets its <title> via Nuxt around hydration, so with eager
+    // page-load a one-shot read can catch an empty title. Poll until it appears.
+    public MainPage checkTitleContains(String expected) {
+        Wait().withMessage("page title to contain \"" + expected + "\"")
+                .until(driver -> {
+                    String actual = driver.getTitle();
+                    return actual != null
+                            && actual.toLowerCase().contains(expected.toLowerCase());
+                });
+        return this;
+    }
 }
