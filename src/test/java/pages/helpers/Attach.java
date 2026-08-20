@@ -1,5 +1,6 @@
 package pages.helpers;
 
+import com.codeborne.selenide.Configuration;
 import com.codeborne.selenide.Selenide;
 import io.qameta.allure.Attachment;
 import org.openqa.selenium.OutputType;
@@ -43,12 +44,28 @@ public class Attach {
     }
 
     public static URL getVideoUrl() {
-        String videoUrl = "https://selenoid.qa.guru/video/" + sessionId() + ".mp4";
+        String videoUrl = videoHost() + "/video/" + sessionId() + ".mp4";
         try {
             return new URL(videoUrl);
         } catch (MalformedURLException e) {
             e.printStackTrace();
         }
         return null;
+    }
+
+    // Selenoid serves the recording from the same host that ran the session, so
+    // derive it from Configuration.remote (dropping credentials and /wd/hub)
+    // instead of hardcoding a grid that may not be the one we used.
+    private static String videoHost() {
+        String remote = Configuration.remote;
+        if (remote == null || remote.isEmpty()) {
+            return "https://selenoid.autotests.cloud";
+        }
+        try {
+            URL grid = new URL(remote);
+            return grid.getProtocol() + "://" + grid.getHost();
+        } catch (MalformedURLException e) {
+            return "https://selenoid.autotests.cloud";
+        }
     }
 }

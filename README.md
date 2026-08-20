@@ -130,9 +130,6 @@ allure serve build/allure-results
 
 ## 🎬 Видеозапись прогона в Selenoid
 
-К каждому тесту в Allure-отчёте прикладывается видео прогона: Selenoid пишет сессию,
-а метод `Attach.addVideo()` встраивает её в отчёт по адресу
-`https://selenoid.qa.guru/video/<sessionId>.mp4`.
 
 <p align="center">
   <img title="Selenoid video" src="media/screens/selenoid-video.gif" width="80%">

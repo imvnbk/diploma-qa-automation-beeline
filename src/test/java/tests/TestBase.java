@@ -6,7 +6,10 @@ import io.qameta.allure.selenide.AllureSelenide;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.openqa.selenium.remote.DesiredCapabilities;
 import pages.helpers.Attach;
+
+import java.util.Map;
 
 import static com.codeborne.selenide.Configuration.remote;
 import static com.codeborne.selenide.Selenide.closeWebDriver;
@@ -31,6 +34,15 @@ public class TestBase {
         }
         Configuration.timeout = 10000;
         Configuration.pageLoadStrategy = "eager";
+
+        // Selenoid records a session only when asked to; without enableVideo no
+        // .mp4 is ever produced. Ignored by a local browser, so it is safe here.
+        DesiredCapabilities capabilities = new DesiredCapabilities();
+        capabilities.setCapability("selenoid:options", Map.of(
+                "enableVideo", true,
+                "enableVNC", true
+        ));
+        Configuration.browserCapabilities = capabilities;
     }
 
     @AfterEach
