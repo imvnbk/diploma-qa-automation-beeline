@@ -63,8 +63,6 @@ UI-автотесты для сайта оператора **Beeline Казах�
 - **Jenkins job:** [imanbek_qa-automation-vacancy-homework-tests](https://jenkins.qa.guru/job/imanbek_qa-automation-vacancy-homework-tests/)
 - **Allure-отчёт (последняя сборка):** [Allure Report](https://jenkins.qa.guru/job/imanbek_qa-automation-vacancy-homework-tests/allure/)
 
-> Ссылки выше — плейсхолдеры, замените их на реальные URL вашего Jenkins и опубликованного Allure-отчёта.
-
 ## ✅ Результаты последнего прогона
 
 Все **7 тестов** пройдены успешно (по данным последнего локального прогона, `build/allure-results`):
