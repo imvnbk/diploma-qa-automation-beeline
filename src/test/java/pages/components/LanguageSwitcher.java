@@ -11,9 +11,6 @@ import static com.codeborne.selenide.WebDriverRunner.url;
 
 public class LanguageSwitcher {
 
-    // Native <select class="language-picker"> with <option value="kk|ru">.
-    // Two exist (desktop + a d-lg-none mobile one); the first match is the
-    // desktop switcher, which is the visible one at 1920x1080.
     private final SelenideElement languagePicker = $(".language-picker");
 
     public LanguageSwitcher checkVisible() {
@@ -31,11 +28,6 @@ public class LanguageSwitcher {
         return this;
     }
 
-    // The switcher navigates via a Vue @change handler that attaches only after
-    // client-side hydration. With eager page-load the first change can fire
-    // before the handler is ready and gets lost, so re-trigger a genuine value
-    // change (a same-value re-select emits no change event) and wait briefly for
-    // the URL to reflect the chosen language between attempts.
     private void switchLanguage(String targetValue, String otherValue, String urlPart) {
         for (int attempt = 0; attempt < 15 && !url().contains(urlPart); attempt++) {
             if (attempt > 0) {
@@ -46,7 +38,6 @@ public class LanguageSwitcher {
                 Wait().withTimeout(Duration.ofSeconds(1))
                         .until(driver -> driver.getCurrentUrl().contains(urlPart));
             } catch (RuntimeException notHydratedYet) {
-                // handler not ready yet — re-trigger on the next attempt
             }
         }
     }

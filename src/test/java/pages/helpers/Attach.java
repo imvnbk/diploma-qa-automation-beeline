@@ -53,9 +53,6 @@ public class Attach {
         return null;
     }
 
-    // Selenoid serves the recording from the same host that ran the session, so
-    // derive it from Configuration.remote (dropping credentials and /wd/hub)
-    // instead of hardcoding a grid that may not be the one we used.
     private static String videoHost() {
         String remote = Configuration.remote;
         if (remote == null || remote.isEmpty()) {
