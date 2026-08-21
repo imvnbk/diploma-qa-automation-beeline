@@ -8,6 +8,7 @@ UI-автотесты для сайта оператора **Beeline Казах�
 
 - [Использованный стек технологий](#computer-использованный-стек-технологий)
 - [Что проверяется (тест-кейсы)](#-что-проверяется-тест-кейсы)
+- [Сборка в Jenkins](#-сборка-в-jenkins)
 - [Результаты последнего прогона](#-результаты-последнего-прогона)
 - [Запуск тестов](#arrow_forward-запуск-тестов)
 - [Параметры запуска](#-параметры-запуска)
@@ -59,6 +60,15 @@ UI-автотесты для сайта оператора **Beeline Казах�
 > - `<html lang>` на сайте всегда пустой, поэтому язык проверяется по префиксу URL (`/ru`, `/kk`), а не по атрибуту.
 > - Переключатель языка — нативный `<select class="language-picker">`; его обработчик `@change` навешивается только после гидратации Vue, поэтому в `LanguageSwitcher` переключение выполняется с повторными попытками и ожиданием смены URL.
 > - `<title>` главной проставляется Nuxt около момента гидратации, поэтому проверка заголовка ждёт его появления (`MainPage.checkTitleContains`), а не читает один раз.
+
+## 🔧 Сборка в Jenkins
+
+Автотесты запускаются на CI-сервере Jenkins; по завершении сборки публикуется Allure-отчёт.
+
+- **Jenkins job:** [imanbek_qa-automation-vacancy-homework-tests](https://jenkins.qa.guru/job/imanbek_qa-automation-vacancy-homework-tests/)
+- **Allure-отчёт (последняя сборка):** [Allure Report](https://jenkins.qa.guru/job/imanbek_qa-automation-vacancy-homework-tests/allure/)
+
+> Ссылки выше — плейсхолдеры, замените их на реальные URL вашего Jenkins и опубликованного Allure-отчёта.
 
 ## ✅ Результаты последнего прогона
 
@@ -112,6 +122,8 @@ UI-автотесты для сайта оператора **Beeline Казах�
 
 ## 📊 Allure-отчёт
 
+Опубликованный отчёт последней сборки доступен в Jenkins: [Allure Report](https://jenkins.qa.guru/job/imanbek_qa-automation-vacancy-homework-tests/4/allure/)
+
 Сгенерировать и открыть отчёт локально:
 ```bash
 ./gradlew test
@@ -139,14 +151,14 @@ allure serve build/allure-results
 
 ```
 src/test/java
+├── helpers
+│   └── Attach.java            # вложения в Allure: скриншот, source, логи, видео
 ├── pages
 │   ├── MainPage.java          # главная: header, заголовок
 │   ├── TariffsPage.java       # тарифы: заголовок, «Премиум Семья х6»
 │   ├── HelpPage.java          # помощь: «Как мы можем помочь?»
-│   ├── components
-│   │   └── LanguageSwitcher.java   # переключатель языка (kk/ru)
-│   └── helpers
-│       └── Attach.java        # вложения в Allure: скриншот, source, логи, видео
+│   └── components
+│       └── LanguageSwitcher.java   # переключатель языка (kk/ru)
 └── tests
     ├── TestBase.java          # конфигурация Selenide/Selenoid + Allure listener
     ├── MainPageTests.java
