@@ -1,5 +1,7 @@
-package tests;
+package tests.ui;
 
+import io.qameta.allure.Epic;
+import io.qameta.allure.Feature;
 import io.qameta.allure.Owner;
 import io.qameta.allure.Severity;
 import io.qameta.allure.SeverityLevel;
@@ -12,6 +14,9 @@ import static com.codeborne.selenide.Selenide.open;
 import static com.codeborne.selenide.Selenide.webdriver;
 import static com.codeborne.selenide.WebDriverConditions.urlContaining;
 
+@Epic("beeline.kz UI")
+@Feature("Переключение языка")
+@DisplayName("UI: Переключение языка")
 public class LanguageSwitchTests extends TestBase {
 
     private final LanguageSwitcher languageSwitcher = new LanguageSwitcher();

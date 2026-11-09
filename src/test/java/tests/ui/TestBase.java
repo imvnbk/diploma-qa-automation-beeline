@@ -1,4 +1,4 @@
-package tests;
+package tests.ui;
 
 import com.codeborne.selenide.Configuration;
 import com.codeborne.selenide.logevents.SelenideLogger;
@@ -6,6 +6,7 @@ import io.qameta.allure.selenide.AllureSelenide;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
 import org.openqa.selenium.remote.DesiredCapabilities;
 import helpers.Attach;
 
@@ -13,7 +14,9 @@ import java.util.Map;
 
 import static com.codeborne.selenide.Configuration.remote;
 import static com.codeborne.selenide.Selenide.closeWebDriver;
+import static com.codeborne.selenide.WebDriverRunner.hasWebDriverStarted;
 
+@Tag("ui")
 public class TestBase {
 
     @BeforeEach
@@ -24,7 +27,7 @@ public class TestBase {
     @BeforeAll
     static void setup() {
         Configuration.browser = System.getProperty("browser", "chrome");
-        Configuration.browserVersion = System.getProperty("browserVersion", "149.0");
+        Configuration.browserVersion = System.getProperty("browserVersion", "157.0");
         Configuration.browserSize = System.getProperty("browserSize", "1920x1080");
         Configuration.baseUrl = System.getProperty("baseUrl","https://beeline.kz");
         Configuration.headless = Boolean.parseBoolean(System.getProperty("headless", "false"));
@@ -45,10 +48,12 @@ public class TestBase {
 
     @AfterEach
     void afterEach(){
-        Attach.screenshotAs("Last screenshot");
-        Attach.pageSource();
-        Attach.browserConsoleLogs();
-        Attach.addVideo();
-        closeWebDriver();
+        if (hasWebDriverStarted()) {
+            Attach.screenshotAs("Last screenshot");
+            Attach.pageSource();
+            Attach.browserConsoleLogs();
+            Attach.addVideo();
+            closeWebDriver();
+        }
     }
 }

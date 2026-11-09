@@ -13,11 +13,6 @@ public class TariffsPage {
                     .filterBy(text("Тарифы для смартфона"))
                     .first();
 
-    private final SelenideElement premiumFamilyTariff =
-            $$("body *")
-                    .filterBy(text("Премиум Семья х6"))
-                    .first();
-
     @Step("Открыть страницу тарифов")
     public TariffsPage openPage() {
         open("/ru/products/tariffs");
@@ -30,9 +25,14 @@ public class TariffsPage {
         return this;
     }
 
-    @Step("Проверить, что отображается тариф «Премиум Семья х6»")
-    public TariffsPage checkPremiumFamilyTariff() {
-        premiumFamilyTariff.shouldBe(visible);
+    @Step("Проверить, что отображается тариф «{tariffTitle}»")
+    public TariffsPage checkTariffDisplayed(String tariffTitle) {
+        // в API перед названием может стоять декоративный символ (например, «✦ »), в тексте страницы его нет
+        String visibleTitle = tariffTitle.replaceFirst("^[^\\p{L}\\p{N}]+", "");
+        $$("body *")
+                .filterBy(text(visibleTitle))
+                .first()
+                .shouldBe(visible);
         return this;
     }
 }

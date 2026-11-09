@@ -10,7 +10,11 @@ repositories {
 def selenideVersion = "7.13.0",
     allureVersion = "2.32.0",
     junitVersion = "5.14.1",
-    slf4jVersion = "2.0.17"
+    slf4jVersion = "2.0.17",
+    restAssuredVersion = "5.5.0",
+    jacksonVersion = "2.17.2",
+    assertjVersion = "3.26.3",
+    lombokVersion = "1.18.34"
 
 allure {
     report {
@@ -30,17 +34,50 @@ dependencies {
     testImplementation (
             "com.codeborne:selenide:$selenideVersion",
             "io.qameta.allure:allure-selenide:$allureVersion",
+            "io.rest-assured:rest-assured:$restAssuredVersion",
+            "io.rest-assured:json-schema-validator:$restAssuredVersion",
+            "io.qameta.allure:allure-rest-assured:$allureVersion",
+            "com.fasterxml.jackson.core:jackson-databind:$jacksonVersion",
+            "org.assertj:assertj-core:$assertjVersion",
             "org.junit.jupiter:junit-jupiter:$junitVersion",
             "org.slf4j:slf4j-simple:$slf4jVersion"
     )
+    testCompileOnly "org.projectlombok:lombok:$lombokVersion"
+    testAnnotationProcessor "org.projectlombok:lombok:$lombokVersion"
+}
+
+// ./gradlew uiTest  — только UI-тесты (@Tag("ui"));  ./gradlew apiTest — только API-тесты (@Tag("api"))
+tasks.register('uiTest', Test) {
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    useJUnitPlatform { includeTags 'ui' }
+}
+
+tasks.register('apiTest', Test) {
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    useJUnitPlatform { includeTags 'api' }
 }
 
 tasks.withType(Test) {
     useJUnitPlatform()
     systemProperties(System.getProperties())
+    // блок Environment в Allure-отчёте (значения по умолчанию совпадают с TestBase)
+    doLast {
+        def resultsDir = file("$buildDir/allure-results")
+        resultsDir.mkdirs()
+        new File(resultsDir, 'environment.properties').text = [
+                "Stand=${System.getProperty('baseUrl', 'https://beeline.kz')}",
+                "Browser=${System.getProperty('browser', 'chrome')}",
+                "Browser.Version=${System.getProperty('browserVersion', '157.0')}",
+                "Browser.Size=${System.getProperty('browserSize', '1920x1080')}",
+                "Java=${System.getProperty('java.version')}",
+                "OS=${System.getProperty('os.name')}"
+        ].join('\n') + '\n'
+    }
     testLogging {
         lifecycle {
-            events "started", "skipped", "failed", "standard_error", "standard_out"
+            events "started", "passed", "skipped", "failed", "standard_error", "standard_out"
             exceptionFormat "short"
         }
     }
