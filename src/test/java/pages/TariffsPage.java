@@ -100,6 +100,34 @@ public class TariffsPage {
         return this;
     }
 
+    @Step("Открыть страницу тарифов для роутера")
+    public TariffsPage openRoutersPage() {
+        open("/ru/products/tariffs/for-routers");
+        return this;
+    }
+
+    @Step("Проверить, что выбрана вкладка «{tabName}»")
+    public TariffsPage checkSelectedTab(String tabName) {
+        $(".product__tab-item.selected").shouldHave(exactText(tabName));
+        return this;
+    }
+
+    @Step("Проверить, что отображается группа тарифов «{groupTitle}»")
+    public TariffsPage checkGroupTitleVisible(String groupTitle) {
+        $$(".product__group-nav .heading-3").findBy(text(groupTitle)).shouldBe(visible);
+        return this;
+    }
+
+    @Step("Проверить, что в первой карточке есть название, цена и кнопки «Подробнее» и «Подключить»")
+    public TariffsPage checkFirstCardHasContent() {
+        SelenideElement first = $$(".product-card").first().shouldBe(visible);
+        first.$(".heading-5").shouldNotBe(empty);
+        first.$(".product-card__cost").shouldBe(visible).shouldNotBe(empty);
+        first.$(".product-card__button-left").shouldBe(visible);
+        first.$("button[data-bs-target]").shouldBe(visible);
+        return this;
+    }
+
     private static String containing(String text) {
         return "(?s).*" + Pattern.quote(text) + ".*";
     }

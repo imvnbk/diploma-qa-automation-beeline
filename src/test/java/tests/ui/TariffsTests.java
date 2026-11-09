@@ -127,6 +127,19 @@ public class TariffsTests extends TestBase {
                 .checkCardVisible(slug);
     }
 
+    @Test
+    @DisplayName("Вкладка «Для роутера» открывается: выбрана вкладка, видна группа тарифов и карточка")
+    @Owner("Bexultan Imanbek")
+    @Severity(SeverityLevel.NORMAL)
+    void routerTariffsPageShouldBeOpened() {
+        tariffsPage.openRoutersPage()
+                .checkSelectedTab("Для роутера")
+                .checkGroupTitleVisible("Безлимитный интернет для роутера")
+                .checkFirstCardHasContent();
+
+        webdriver().shouldHave(urlContaining("/ru/products/tariffs/for-routers"));
+    }
+
     @Step("Получить из API группу тарифов «{title}»")
     private TariffGroup group(String title) {
         return TariffsApi.getTariffList("ru").getData().getTariffGroups().stream()
