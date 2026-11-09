@@ -233,3 +233,12 @@ src/test
 ```
 
 Ручные тест-кейсы — в `docs/manual-test-cases.md`.
+
+## 👤 Автор
+
+**Бексултан Иманбек** — QA Automation Engineer (Java), Алматы
+
+- GitHub: [imvnbk](https://github.com/imvnbk)
+- Telegram: [@imvnbk](https://t.me/imvnbk)
+- LinkedIn: [imvnbk](https://www.linkedin.com/in/imvnbk)
+- hh.ru: [резюме](https://hh.ru/resume/dbb77fe1ff060dcd510039ed1f6855394e4670)
