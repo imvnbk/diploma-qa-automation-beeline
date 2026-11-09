@@ -55,6 +55,9 @@ HTTP-запросы и ответы API). Ручные тест-кейсы: [doc
 | 1 | `MainPageTests.mainPageShouldBeOpened` | Главная открывается, `header` виден, URL содержит `beeline.kz` |
 | 2 | `MainPageTests.mainPageShouldHaveCorrectTitle` | `<title>` страницы содержит «Beeline» |
 | 2а | `MainPageTests.personalAccountShouldShowMovedToJanymdaMessage` | Кнопка «Личный кабинет» показывает сообщение «Личный кабинет переехал в приложение «Janymda»» с QR-кодом |
+| 2б | `MainPageTests.navigationItemShouldOpenPage` (3) | Пункты меню «Тарифы и услуги», «Интернет дома + TV», «Помощь» открывают нужные страницы |
+| 2в | `MainPageTests.quickTileShouldOpenPage` (3) | Плитки «Пополнить баланс», «Тарифы», «Замена SIM» открывают нужные страницы |
+| 2г | `MainPageTests.footerShouldShowSupportContacts` | В подвале отображаются контакты поддержки (116, 3131, infodesk@beeline.kz) |
 | 3 | `TariffsTests.tariffsPageShouldBeOpened` | На странице тарифов виден заголовок «Тарифы для смартфона» |
 | 4 | `TariffsTests.firstTariffFromApiShouldBeDisplayed` | Название первого тарифа берётся из `/api/tariff-list` и проверяется на странице тарифов (UI + API) |
 | 5 | `HelpTests.helpTitleFromApiShouldBeDisplayed` | Заголовок из `/api/help` отображается на странице помощи (UI + API) |
@@ -122,13 +125,13 @@ HTTP-запросы и ответы API). Ручные тест-кейсы: [doc
 
 ## ✅ Результаты последнего прогона
 
-Все **36 тестов** (12 UI + 24 API) пройдены успешно (по данным последнего локального прогона `./gradlew clean test`):
+Все **43 теста** (19 UI + 24 API) пройдены успешно (по данным последнего локального прогона `./gradlew clean test`):
 
 | Набор | Тестов | ✅ Passed | ❌ Failed | ⏭ Skipped |
 |-------|:------:|:--------:|:--------:|:---------:|
-| UI (`uiTest`) | 12 | 12 | 0 | 0 |
+| UI (`uiTest`) | 19 | 19 | 0 | 0 |
 | API (`apiTest`) | 24 | 24 | 0 | 0 |
-| **Всего** | **36** | **36** | **0** | **0** |
+| **Всего** | **43** | **43** | **0** | **0** |
 
 <p align="center">
   <img title="Allure Graphs" src="media/screens/allure-graphs.png" width="80%">

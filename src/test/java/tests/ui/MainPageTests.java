@@ -7,6 +7,8 @@ import io.qameta.allure.Severity;
 import io.qameta.allure.SeverityLevel;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import pages.MainPage;
 
 import static com.codeborne.selenide.Selenide.webdriver;
@@ -50,5 +52,46 @@ public class MainPageTests extends TestBase {
     void mainPageShouldHaveCorrectTitle() {
         mainPage.openPage()
                 .checkTitleContains("Beeline");
+    }
+
+    @ParameterizedTest(name = "Пункт меню «{0}» ведёт на {1}")
+    @DisplayName("Пункты меню навигации ведут на нужные страницы")
+    @Owner("Bexultan Imanbek")
+    @Severity(SeverityLevel.CRITICAL)
+    @CsvSource(delimiter = '|', value = {
+            "Тарифы и услуги | /ru/products/tariffs",
+            "Интернет дома + TV | /ru/internet-home-tv-mobile",
+            "Помощь | /ru/help"
+    })
+    void navigationItemShouldOpenPage(String label, String expectedPath) {
+        mainPage.openRussianPage()
+                .clickNavigationItem(label);
+
+        webdriver().shouldHave(urlContaining(expectedPath));
+    }
+
+    @ParameterizedTest(name = "Плитка «{0}» ведёт на {1}")
+    @DisplayName("Плитки быстрых действий ведут на нужные страницы")
+    @Owner("Bexultan Imanbek")
+    @Severity(SeverityLevel.NORMAL)
+    @CsvSource(delimiter = '|', value = {
+            "Пополнить баланс | /ru/top-up",
+            "Тарифы | /ru/products/tariffs",
+            "Замена SIM | /ru/sim-restore"
+    })
+    void quickTileShouldOpenPage(String label, String expectedPath) {
+        mainPage.openRussianPage()
+                .clickQuickTile(label);
+
+        webdriver().shouldHave(urlContaining(expectedPath));
+    }
+
+    @Test
+    @DisplayName("В подвале отображаются контакты поддержки")
+    @Owner("Bexultan Imanbek")
+    @Severity(SeverityLevel.MINOR)
+    void footerShouldShowSupportContacts() {
+        mainPage.openRussianPage()
+                .checkFooterContacts("116", "3131", "infodesk@beeline.kz");
     }
 }

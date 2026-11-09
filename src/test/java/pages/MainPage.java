@@ -3,6 +3,7 @@ package pages;
 import com.codeborne.selenide.SelenideElement;
 import io.qameta.allure.Step;
 
+import static com.codeborne.selenide.Condition.exactText;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 import static com.codeborne.selenide.Selenide.*;
@@ -44,6 +45,27 @@ public class MainPage {
     public MainPage checkPersonalAccountQrCodeVisible() {
         // хеш в имени файла (qr_code_auth_<hash>.svg) может меняться, поэтому ищем по части имени
         personalAccountModal.$("img[src*='qr_code_auth']").shouldBe(visible);
+        return this;
+    }
+
+    @Step("Нажать на пункт меню «{label}»")
+    public MainPage clickNavigationItem(String label) {
+        $$(".navigation-list a.navigation-button").findBy(exactText(label)).click();
+        return this;
+    }
+
+    @Step("Нажать на плитку быстрого действия «{label}»")
+    public MainPage clickQuickTile(String label) {
+        $$("a.box").findBy(exactText(label)).click();
+        return this;
+    }
+
+    @Step("Проверить контакты поддержки в подвале: {contacts}")
+    public MainPage checkFooterContacts(String... contacts) {
+        SelenideElement contactList = $(".contact-list").scrollIntoView(true);
+        for (String contact : contacts) {
+            contactList.shouldHave(text(contact));
+        }
         return this;
     }
 
