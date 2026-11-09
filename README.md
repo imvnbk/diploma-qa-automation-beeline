@@ -117,8 +117,8 @@ HTTP-запросы и ответы API). Ручные тест-кейсы: [doc
 
 Автотесты запускаются на CI-сервере Jenkins; по завершении сборки публикуется Allure-отчёт.
 
-- **Jenkins job:** [imanbek_qa-automation-vacancy-homework-tests](https://jenkins.qa.guru/job/imanbek_qa-automation-vacancy-homework-tests/)
-- **Allure-отчёт (последняя сборка):** [Allure Report](https://jenkins.qa.guru/job/imanbek_qa-automation-vacancy-homework-tests/allure/)
+- **Jenkins job:** [imanbek_diploma-qa-automation-beeline](https://jenkins.qa.guru/job/imanbek_diploma-qa-automation-beeline/)
+- **Allure-отчёт (последняя сборка):** [Allure Report](https://jenkins.qa.guru/job/imanbek_diploma-qa-automation-beeline/allure/)
 
 ## ✅ Результаты последнего прогона
 
@@ -178,7 +178,7 @@ HTTP-запросы и ответы API). Ручные тест-кейсы: [doc
 
 ## 📊 Allure-отчёт
 
-Опубликованный отчёт последней сборки доступен в Jenkins: [Allure Report](https://jenkins.qa.guru/job/imanbek_qa-automation-vacancy-homework-tests/4/allure/)
+Опубликованный отчёт последней сборки доступен в Jenkins: [Allure Report](https://jenkins.qa.guru/job/imanbek_diploma-qa-automation-beeline/allure/)
 
 Сгенерировать и открыть отчёт локально:
 ```bash
