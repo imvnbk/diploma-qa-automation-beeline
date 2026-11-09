@@ -131,7 +131,7 @@ HTTP-запросы и ответы API). Ручные тест-кейсы: [doc
 | **Всего** | **36** | **36** | **0** | **0** |
 
 <p align="center">
-  <img title="Allure Overview" src="media/screens/allure-overview.png" width="80%">
+  <img title="Allure Graphs" src="media/screens/allure-graphs.png" width="80%">
 </p>
 
 ## :arrow_forward: Запуск тестов
@@ -186,9 +186,9 @@ HTTP-запросы и ответы API). Ручные тест-кейсы: [doc
 allure serve build/allure-results
 ```
 
-### Overview
+### Graphs
 <p align="center">
-  <img title="Allure Overview" src="media/screens/allure-overview.png" width="80%">
+  <img title="Allure Graphs" src="media/screens/allure-graphs.png" width="80%">
 </p>
 
 ### Результат выполнения теста
