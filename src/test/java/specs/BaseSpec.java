@@ -18,7 +18,7 @@ public class BaseSpec {
             .setBaseUri(BASE_URI)
             .setBasePath(BASE_PATH)
             .setAccept(ContentType.JSON)
-            .addHeader("User-Agent", "qa-automation-vacancy-homework/1.0")
+            .addHeader("User-Agent", "diploma-qa-automation-beeline/1.0")
             .addFilter(withCustomTemplates())
             .build();
 

@@ -30,8 +30,8 @@
 
 | Проект | Описание |
 |--------|----------|
-| [qa-automation-vacancy-homework](https://github.com/imvnbk/qa-automation-vacancy-homework) | UI и API автотесты для beeline.kz: Java, Selenide, Rest Assured, JUnit 5, Page Object, Lombok-модели, Specs, JSON-схема, Allure (custom-шаблоны), Selenoid, Jenkins |
-| [Ручные тест-кейсы](https://github.com/imvnbk/qa-automation-vacancy-homework/blob/main/docs/manual-test-cases.md) | чек-лист и подробные кейсы для beeline.kz |
+| [diploma-qa-automation-beeline](https://github.com/imvnbk/diploma-qa-automation-beeline) | UI и API автотесты для beeline.kz: Java, Selenide, Rest Assured, JUnit 5, Page Object, Lombok-модели, Specs, JSON-схема, Allure (custom-шаблоны), Selenoid, Jenkins |
+| [Ручные тест-кейсы](https://github.com/imvnbk/diploma-qa-automation-beeline/blob/main/docs/manual-test-cases.md) | чек-лист и подробные кейсы для beeline.kz |
 
 ## 📫 Контакты
 
