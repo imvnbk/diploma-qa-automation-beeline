@@ -60,6 +60,12 @@ HTTP-запросы и ответы API). Ручные тест-кейсы: [doc
 | 2г | `MainPageTests.footerShouldShowSupportContacts` | В подвале отображаются контакты поддержки (116, 3131, infodesk@beeline.kz) |
 | 3 | `TariffsTests.tariffsPageShouldBeOpened` | На странице тарифов виден заголовок «Тарифы для смартфона» |
 | 4 | `TariffsTests.firstTariffFromApiShouldBeDisplayed` | Название первого тарифа берётся из `/api/tariff-list` и проверяется на странице тарифов (UI + API) |
+| 4а | `TariffsTests.smartphoneTariffsFromApiShouldBeDisplayedWithPrices` | Все тарифы для смартфона из `/api/tariff-list` показаны на странице с названием и ценой (UI + API) |
+| 4б | `TariffsTests.detailsButtonShouldOpenTariffPage` | «Подробнее» открывает страницу тарифа `/ru/products/tariffs/<slug>` |
+| 4в | `TariffsTests.connectButtonShouldOpenModal` | «Подключить» открывает окно подключения тарифа |
+| 4г | `TariffsTests.tabsFromApiShouldOpenTheirPages` | Вкладки «Для роутера» и «Услуги» (из API) открывают свои страницы |
+| 4д | `TariffsTests.archiveButtonShouldOpenArchive` | «Архив тарифов» открывает `/ru/products/archived/tariffs` |
+| 4е | `TariffsTests.socialTariffsGroupShouldExpand` | Группа «Социальные тарифы» раскрывается и показывает тариф из API |
 | 5 | `HelpTests.helpTitleFromApiShouldBeDisplayed` | Заголовок из `/api/help` отображается на странице помощи (UI + API) |
 | 5а | `HelpTests.firstCategoryFromApiShouldBeDisplayed` | Название первой категории из `/api/help` отображается на странице помощи (UI + API) |
 | 5б | `HelpTests.searchBlockFromApiShouldBeDisplayed` | Поле поиска («Что ищете?») и быстрые варианты из `/api/help` отображаются на странице помощи (UI + API) |
@@ -103,6 +109,19 @@ HTTP-запросы и ответы API). Ручные тест-кейсы: [doc
 | `searchVariantLinksShouldPointToExistingCategories` | Ссылки `/help?category=<slug>` ведут на существующие категории |
 | `seoShouldHaveTitle` | `seo.title` заполнен |
 
+**`POST /api/beeline-landings/query`** — `LandingsApiTests` (запрос только читает данные страницы «Архив услуг»)
+
+| Тест | Проверка |
+|------|----------|
+| `requestModelShouldMatchSiteRequestBody` | Модель `LandingQueryRequest` (фильтры `$eq`, пагинация, populate, локаль) сериализуется в тело, равное телу запроса сайта |
+| `landingQueryShouldReturnJson` | Реальный `POST` с телом из модели возвращает `200`, JSON и непустой ответ |
+| `responseShouldContainRequestedPage` | В ответе ровно одна страница с `slug = archive`, `group = products`, `subGroup = services`, `locale = ru` |
+| `pageShouldContainServiceGroups` | Есть группы услуг; у каждой заполнены название и услуги |
+| `everyServiceShouldHaveBasicFields` | У каждой услуги `title`, `slug`, `locale = ru`, `fixedStyle = archive`, есть `costBlock` |
+| `serviceSlugsShouldBeUnique` | `slug` услуг не повторяются |
+| `servicePricesShouldBeNonNegative` | Стоимость услуг (если указана) неотрицательна |
+| `localizationsShouldMatchServices` | Переводы услуг имеют тот же `slug` и другую локаль |
+
 **`POST /telco/payment`** — `PaymentRequestModelTests` (без обращения к сайту)
 
 | Тест | Проверка |
@@ -125,13 +144,13 @@ HTTP-запросы и ответы API). Ручные тест-кейсы: [doc
 
 ## ✅ Результаты последнего прогона
 
-Все **43 теста** (19 UI + 24 API) пройдены успешно (по данным последнего локального прогона `./gradlew clean test`):
+Все **57 тестов** (25 UI + 32 API) пройдены успешно (по данным локальных прогонов `./gradlew clean test`):
 
 | Набор | Тестов | ✅ Passed | ❌ Failed | ⏭ Skipped |
 |-------|:------:|:--------:|:--------:|:---------:|
-| UI (`uiTest`) | 19 | 19 | 0 | 0 |
-| API (`apiTest`) | 24 | 24 | 0 | 0 |
-| **Всего** | **43** | **43** | **0** | **0** |
+| UI (`uiTest`) | 25 | 25 | 0 | 0 |
+| API (`apiTest`) | 32 | 32 | 0 | 0 |
+| **Всего** | **57** | **57** | **0** | **0** |
 
 <p align="center">
   <img title="Allure Graphs" src="media/screens/allure-graphs.png" width="80%">
