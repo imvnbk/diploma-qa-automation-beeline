@@ -16,6 +16,8 @@ import models.ServiceItem;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 
 import java.util.HashSet;
 import java.util.List;
@@ -23,6 +25,7 @@ import java.util.Set;
 
 import static api.LandingsApi.getLanding;
 import static api.LandingsApi.queryLanding;
+import static api.LandingsApi.rawQuery;
 import static io.qameta.allure.Allure.step;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.greaterThan;
@@ -186,5 +189,44 @@ public class LandingsApiTests {
                 }
             }
         });
+    }
+
+    // ---------- негативные сценарии ----------
+
+    @ParameterizedTest(name = "group={0}, subGroup={1}, slug={2}")
+    @DisplayName("Несуществующая страница: пустой data, а не ошибка")
+    @Severity(SeverityLevel.NORMAL)
+    @CsvSource({
+            "products, services, no-such-page-xyz",
+            "products, no-such-subgroup, archive",
+            "no-such-group, services, archive"
+    })
+    void unknownPageShouldReturnEmptyData(String group, String subGroup, String slug) {
+        List<LandingPage> pages = getLanding(LandingQueryRequest.forPage(group, subGroup, slug, "ru")).getData();
+
+        step("data пуст", () -> assertThat(pages).isEmpty());
+    }
+
+    @Test
+    @DisplayName("Неизвестная локаль: сервер не падает и не возвращает страниц")
+    @Severity(SeverityLevel.NORMAL)
+    void unknownLocaleShouldNotReturnPages() {
+        var response = rawQuery(LandingQueryRequest.forPage("products", "services", "archive", "xx"));
+
+        step("Статус не 5xx", () -> assertThat(response.statusCode()).isLessThan(500));
+        step("Если статус 200 — страниц в ответе нет", () -> {
+            if (response.statusCode() == 200) {
+                assertThat(response.jsonPath().getList("data")).isNullOrEmpty();
+            }
+        });
+    }
+
+    @Test
+    @DisplayName("Некорректный JSON в теле: сервер не отвечает ошибкой 5xx")
+    @Severity(SeverityLevel.NORMAL)
+    void malformedBodyShouldNotCauseServerError() {
+        var response = rawQuery("{not a json");
+
+        step("Статус не 5xx", () -> assertThat(response.statusCode()).isLessThan(500));
     }
 }
