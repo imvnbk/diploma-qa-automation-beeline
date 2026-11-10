@@ -3,6 +3,8 @@ package pages;
 import com.codeborne.selenide.SelenideElement;
 import io.qameta.allure.Step;
 
+import java.time.Duration;
+
 import static com.codeborne.selenide.Condition.exactText;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
@@ -29,7 +31,20 @@ public class MainPage {
     public MainPage clickPersonalAccount() {
         // иконка личного кабинета открывает модальное окно #QRModalAuth;
         // таких иконок может быть несколько (десктоп/мобильное меню): берём видимую
-        $$("[data-bs-target='#QRModalAuth']").findBy(visible).click();
+        SelenideElement icon = $$("[data-bs-target='#QRModalAuth']").findBy(visible);
+        // сайт на Nuxt: клик до завершения гидратации страницы не открывает модальное окно (на медленном CI-агенте
+        // так бывает), поэтому при необходимости повторяем клик, пока окно не появится
+        for (int attempt = 1; attempt <= 3; attempt++) {
+            icon.click();
+            try {
+                personalAccountModal.shouldBe(visible, Duration.ofSeconds(4));
+                return this;
+            } catch (AssertionError e) {
+                if (attempt == 3) {
+                    throw e;
+                }
+            }
+        }
         return this;
     }
 
