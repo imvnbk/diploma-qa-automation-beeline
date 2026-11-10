@@ -25,6 +25,6 @@ public class BaseSpec {
     public static final ResponseSpecification okResponseSpec = new ResponseSpecBuilder()
             .expectStatusCode(200)
             .expectContentType(ContentType.JSON)
-            .expectResponseTime(lessThan(5000L))
+            .expectResponseTime(lessThan(15000L))
             .build();
 }

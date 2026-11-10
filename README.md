@@ -75,7 +75,7 @@ HTTP-запросы и ответы API). Ручные тест-кейсы: [doc
 
 ### API-тесты (`@Tag("api")`)
 
-Тестируются публичные `GET`-эндпоинты (Strapi CMS сайта). Везде проверяются статус `200`, `Content-Type: application/json` и время ответа < 5 с (`ResponseSpecification`).
+Тестируются публичные `GET`-эндпоинты (Strapi CMS сайта). Везде проверяются статус `200`, `Content-Type: application/json` и время ответа < 15 с (запас на «холодный» первый запрос с CI-агента) (`ResponseSpecification`).
 
 **`GET /api/ui-texts`** — `UiTextsApiTests`
 
