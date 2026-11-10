@@ -121,6 +121,21 @@ HTTP-запросы и ответы API). Ручные тест-кейсы: [doc
 | `serviceSlugsShouldBeUnique` | `slug` услуг не повторяются |
 | `servicePricesShouldBeNonNegative` | Стоимость услуг (если указана) неотрицательна |
 | `localizationsShouldMatchServices` | Переводы услуг имеют тот же `slug` и другую локаль |
+| `unknownPageShouldReturnEmptyData` | Несуществующие `slug`, `subGroup`, `group` дают `200` и пустой `data` (3 набора параметров) |
+| `unknownLocaleShouldNotReturnPages` | Неизвестная локаль: ответ не 5xx и без страниц |
+| `malformedBodyShouldNotCauseServerError` | Некорректный JSON в теле: ответ не 5xx |
+
+**`GET /api/global-search/search`** — `GlobalSearchApiTests` (поиск по слову «телефон», только чтение)
+
+| Тест | Проверка |
+|------|----------|
+| `searchShouldReturnResults` | `200`, JSON; `data` не пуст, `meta.query` и `meta.locale` совпадают с запросом |
+| `limitShouldRestrictResultsCount` | Параметр `limit` (1, 5, 10) ограничивает число результатов, `meta.pagination.limit` равен `limit` |
+| `everyResultShouldHaveBasicFields` | У каждого результата `id`, `type`, `source`; `source.id` = `id`, `source.locale` = `ru` |
+| `resultsShouldBeSortedByScoreDescending` | Результаты отсортированы по убыванию `score` |
+| `everyResultShouldHaveHighlight` | У каждого результата есть `highlight` с тегом `<mark>` |
+| `metaShouldBeConsistentWithResults` | `meta.total` не меньше числа результатов, типы результатов входят в `availableTypes` |
+| `unusualQueryShouldNotCauseServerError` | Пустой, бессмысленный запрос и `<script>` не дают 5xx (3 набора) |
 
 **`POST /telco/payment`** — `PaymentRequestModelTests` (без обращения к сайту)
 
@@ -144,13 +159,13 @@ HTTP-запросы и ответы API). Ручные тест-кейсы: [doc
 
 ## ✅ Результаты последнего прогона
 
-Все **63 теста** (26 UI + 37 API) пройдены успешно (по данным локальных прогонов `./gradlew clean test`):
+Все **74 теста** (26 UI + 48 API) пройдены успешно (по данным локальных прогонов `./gradlew clean test`):
 
 | Набор | Тестов | ✅ Passed | ❌ Failed | ⏭ Skipped |
 |-------|:------:|:--------:|:--------:|:---------:|
 | UI (`uiTest`) | 26 | 26 | 0 | 0 |
-| API (`apiTest`) | 37 | 37 | 0 | 0 |
-| **Всего** | **63** | **63** | **0** | **0** |
+| API (`apiTest`) | 48 | 48 | 0 | 0 |
+| **Всего** | **74** | **74** | **0** | **0** |
 
 <p align="center">
   <img title="Allure Graphs" src="media/screens/allure-graphs.png" width="80%">
