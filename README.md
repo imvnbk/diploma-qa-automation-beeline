@@ -33,18 +33,24 @@ HTTP-запросы и ответы API). Ручные тест-кейсы: [doc
 </p>
 
 - Автотесты написаны на языке `Java 17` с использованием фреймворка [Selenide](https://selenide.org/).
+- API-тесты — [REST Assured](https://rest-assured.io/) (+ `json-schema-validator`), сериализация — `Jackson`, модели — `Lombok`.
+- Проверки — `AssertJ` и встроенные условия Selenide.
 - Сборщик проекта — `Gradle`.
 - Тест-раннер — `JUnit 5` (JUnit Jupiter).
 - Браузер запускается удалённо в [Selenoid](https://aerokube.com/selenoid/).
 - Отчётность — [Allure Report](https://allurereport.org/) (плагин + `aspectjWeaver` для аннотации `@Step`).
 - Применён паттерн **Page Object** с fluent-методами (`return this;`).
 
-**Содержание Allure-отчёта по каждому тесту:**
+**Содержание Allure-отчёта по UI-тесту:**
 * шаги теста;
 * скриншот страницы на последнем шаге;
 * page source;
 * логи браузерной консоли;
 * видео выполнения автотеста (из Selenoid).
+
+**Содержание Allure-отчёта по API-тесту:**
+* шаги теста;
+* HTTP-запрос и ответ (через `CustomAllureListener` и custom-шаблоны `tpl/*.ftl`).
 
 ## 🧪 Что проверяется (тест-кейсы)
 
@@ -66,6 +72,7 @@ HTTP-запросы и ответы API). Ручные тест-кейсы: [doc
 | 4г | `TariffsTests.tabsFromApiShouldOpenTheirPages` | Вкладки «Для роутера» и «Услуги» (из API) открывают свои страницы |
 | 4д | `TariffsTests.archiveButtonShouldOpenArchive` | «Архив тарифов» открывает `/ru/products/archived/tariffs` |
 | 4е | `TariffsTests.socialTariffsGroupShouldExpand` | Группа «Социальные тарифы» раскрывается и показывает тариф из API |
+| 4ж | `TariffsTests.routerTariffsPageShouldBeOpened` | Вкладка «Для роутера» открывает `/ru/products/tariffs/for-routers`: вкладка выбрана, видна группа «Безлимитный интернет для роутера» и первая карточка с содержимым |
 | 5 | `HelpTests.helpTitleFromApiShouldBeDisplayed` | Заголовок из `/api/help` отображается на странице помощи (UI + API) |
 | 5а | `HelpTests.firstCategoryFromApiShouldBeDisplayed` | Название первой категории из `/api/help` отображается на странице помощи (UI + API) |
 | 5б | `HelpTests.searchBlockFromApiShouldBeDisplayed` | Поле поиска («Что ищете?») и быстрые варианты из `/api/help` отображаются на странице помощи (UI + API) |
@@ -245,17 +252,26 @@ allure serve build/allure-results
 ```
 src/test
 ├── java
-│   ├── api                    # вызовы API-эндпоинтов (UiTextsApi, TariffsApi, HelpApi)
-│   ├── models                 # Lombok-модели ответов API
+│   ├── api                    # вызовы API-эндпоинтов (UiTextsApi, TariffsApi, HelpApi, LandingsApi, GlobalSearchApi)
+│   ├── models                 # Lombok-модели запросов и ответов API, сгруппированы по доменам
+│   │   ├── common             # общие: Meta, Pagination, Seo, Localization, CostBlock
+│   │   ├── help               # /api/help
+│   │   ├── tariffs            # /api/tariff-list
+│   │   ├── uitexts            # /api/ui-texts
+│   │   ├── search             # /api/global-search/search
+│   │   ├── payment            # PaymentRequest (только модель тела запроса)
+│   │   └── landings           # /api/beeline-landings/query
+│   │       ├── request        # LandingQueryRequest, LandingFilters, EqFilter, LandingPopulate, RequestPagination
+│   │       └── response       # LandingQueryResponse, LandingPage, LandingComponent, ServiceGroup, ServiceItem
 │   ├── specs
 │   │   └── BaseSpec.java      # RequestSpecification / ResponseSpecification
 │   ├── helpers
 │   │   ├── Attach.java                 # вложения в Allure: скриншот, source, логи, видео
 │   │   └── CustomAllureListener.java   # rest-assured листенер с custom-шаблонами
 │   ├── pages
-│   │   ├── MainPage.java          # главная: header, заголовок
-│   │   ├── TariffsPage.java       # тарифы: заголовок, проверка тарифа по названию
-│   │   ├── HelpPage.java          # помощь: «Как мы можем помочь?»
+│   │   ├── MainPage.java          # главная: header, заголовок, меню, плитки, подвал, личный кабинет
+│   │   ├── TariffsPage.java       # тарифы: карточки, вкладки, архив, группы, кнопки «Подробнее»/«Подключить»
+│   │   ├── HelpPage.java          # помощь: заголовок, категории, поиск и быстрые варианты
 │   │   └── components
 │   │       └── LanguageSwitcher.java   # переключатель языка (kk/ru)
 │   └── tests
@@ -263,7 +279,7 @@ src/test
 │       │   ├── TestBase.java          # конфигурация Selenide/Selenoid + Allure listener (@Tag("ui"))
 │       │   └── MainPageTests / TariffsTests / HelpTests / LanguageSwitchTests
 │       └── api                        # @Tag("api")
-│           └── UiTextsApiTests / TariffListApiTests / HelpApiTests
+│           └── UiTextsApiTests / TariffListApiTests / HelpApiTests / LandingsApiTests / GlobalSearchApiTests / PaymentRequestModelTests
 └── resources
     ├── schemas/ui-texts-schema.json          # JSON-схема ответа
     └── tpl/http-request.ftl, http-response.ftl   # шаблоны вложений Allure
