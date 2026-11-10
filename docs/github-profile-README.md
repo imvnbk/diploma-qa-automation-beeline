@@ -30,8 +30,15 @@
 
 | Проект | Описание |
 |--------|----------|
-| [diploma-qa-automation-beeline](https://github.com/imvnbk/diploma-qa-automation-beeline) | UI и API автотесты для beeline.kz: Java, Selenide, Rest Assured, JUnit 5, Page Object, Lombok-модели, Specs, JSON-схема, Allure (custom-шаблоны), Selenoid, Jenkins |
+Все проекты — тесты для [beeline.kz](https://beeline.kz), собраны в одном репозитории [diploma-qa-automation-beeline](https://github.com/imvnbk/diploma-qa-automation-beeline).
+
+| Проект | Описание |
+|--------|----------|
+| [UI-автотесты](https://github.com/imvnbk/diploma-qa-automation-beeline/tree/main/src/test/java/tests/ui) | Java, Selenide, JUnit 5, Page Object (fluent-методы), запуск в Selenoid, Allure со скриншотами, page source и видео. Ожидаемые данные для части проверок берутся из API |
+| [API-автотесты](https://github.com/imvnbk/diploma-qa-automation-beeline/tree/main/src/test/java/tests/api) | Rest Assured, Lombok-модели запросов и ответов, Specs, проверка по JSON-схеме, Allure-листенер с custom-шаблонами |
 | [Ручные тест-кейсы](https://github.com/imvnbk/diploma-qa-automation-beeline/blob/main/docs/manual-test-cases.md) | чек-лист и подробные кейсы для beeline.kz |
+
+Сборка в Jenkins, Allure-отчёт и результаты прогона — в [README проекта](https://github.com/imvnbk/diploma-qa-automation-beeline#readme).
 
 ## 📫 Контакты
 
