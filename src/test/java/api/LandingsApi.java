@@ -4,8 +4,8 @@ import io.qameta.allure.Step;
 import io.restassured.http.ContentType;
 import io.restassured.response.Response;
 import io.restassured.response.ValidatableResponse;
-import models.LandingQueryRequest;
-import models.LandingQueryResponse;
+import models.landings.request.LandingQueryRequest;
+import models.landings.response.LandingQueryResponse;
 
 import static io.restassured.RestAssured.given;
 import static specs.BaseSpec.okResponseSpec;

@@ -1,7 +1,7 @@
 package api;
 
 import io.qameta.allure.Step;
-import models.TariffListResponse;
+import models.tariffs.TariffListResponse;
 
 import java.util.LinkedHashMap;
 import java.util.Map;

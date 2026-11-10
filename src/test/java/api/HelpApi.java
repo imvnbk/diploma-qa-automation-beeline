@@ -1,7 +1,7 @@
 package api;
 
 import io.qameta.allure.Step;
-import models.HelpResponse;
+import models.help.HelpResponse;
 
 import static io.restassured.RestAssured.given;
 import static specs.BaseSpec.okResponseSpec;

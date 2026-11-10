@@ -2,7 +2,7 @@ package api;
 
 import io.qameta.allure.Step;
 import io.restassured.response.Response;
-import models.GlobalSearchResponse;
+import models.search.GlobalSearchResponse;
 
 import static io.restassured.RestAssured.given;
 import static specs.BaseSpec.okResponseSpec;
