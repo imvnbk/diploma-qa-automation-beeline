@@ -7,8 +7,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 import static io.restassured.RestAssured.given;
-import static specs.BaseSpec.okResponseSpec;
-import static specs.BaseSpec.requestSpec;
+import static specs.ResponseSpecs.okResponseSpec;
 
 public class TariffsApi {
 
@@ -29,7 +28,7 @@ public class TariffsApi {
 
     @Step("GET /api/tariff-list?locale={locale}")
     public static TariffListResponse getTariffList(String locale) {
-        return given(requestSpec)
+        return given()
                 .queryParam("locale", locale)
                 .queryParams(populateParams())
                 .when()

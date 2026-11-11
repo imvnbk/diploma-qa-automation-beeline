@@ -1,0 +1,48 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "description": "Тело запроса POST /api/beeline-landings/query страницы «Архив услуг» в том виде, в каком его отправляет сайт",
+  "type": "object",
+  "required": ["filters", "pagination", "populate", "locale"],
+  "additionalProperties": false,
+  "properties": {
+    "filters": {
+      "type": "object",
+      "required": ["slug", "group", "subGroup"],
+      "additionalProperties": false,
+      "properties": {
+        "slug": { "$ref": "#/definitions/eq" },
+        "group": { "$ref": "#/definitions/eq" },
+        "subGroup": { "$ref": "#/definitions/eq" }
+      }
+    },
+    "pagination": {
+      "type": "object",
+      "required": ["pageSize"],
+      "additionalProperties": false,
+      "properties": {
+        "pageSize": { "type": "integer", "const": 1 }
+      }
+    },
+    "populate": {
+      "type": "object",
+      "required": ["components", "breadcrumbs", "seo"],
+      "additionalProperties": false,
+      "properties": {
+        "components": { "const": true },
+        "breadcrumbs": { "const": true },
+        "seo": { "const": true }
+      }
+    },
+    "locale": { "type": "string", "const": "ru" }
+  },
+  "definitions": {
+    "eq": {
+      "type": "object",
+      "required": ["$eq"],
+      "additionalProperties": false,
+      "properties": {
+        "$eq": { "type": "string", "minLength": 1 }
+      }
+    }
+  }
+}

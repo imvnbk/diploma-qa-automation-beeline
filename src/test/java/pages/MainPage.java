@@ -1,14 +1,24 @@
 package pages;
 
+import com.codeborne.selenide.Condition;
+import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
+import com.codeborne.selenide.WebElementCondition;
 import io.qameta.allure.Step;
 
 import java.time.Duration;
+import java.util.Arrays;
+import java.util.regex.Pattern;
 
+import static com.codeborne.selenide.Condition.attributeMatching;
 import static com.codeborne.selenide.Condition.exactText;
 import static com.codeborne.selenide.Condition.text;
+import static com.codeborne.selenide.CollectionCondition.sizeGreaterThan;
+import static com.codeborne.selenide.Condition.exist;
 import static com.codeborne.selenide.Condition.visible;
-import static com.codeborne.selenide.Selenide.*;
+import static com.codeborne.selenide.Selenide.$;
+import static com.codeborne.selenide.Selenide.$$;
+import static com.codeborne.selenide.Selenide.open;
 
 public class MainPage {
 
@@ -69,6 +79,17 @@ public class MainPage {
         return this;
     }
 
+    @Step("Проверить, что меню навигации отображается, а пункт «{russianLabel}» {present}")
+    public MainPage checkNavigationItemPresence(String russianLabel, boolean present) {
+        ElementsCollection items = $$(".navigation-list a.navigation-button").shouldHave(sizeGreaterThan(0));
+        if (present) {
+            items.findBy(exactText(russianLabel)).shouldBe(visible);
+        } else {
+            items.findBy(exactText(russianLabel)).shouldNot(exist);
+        }
+        return this;
+    }
+
     @Step("Нажать на плитку быстрого действия «{label}»")
     public MainPage clickQuickTile(String label) {
         $$("a.box").findBy(exactText(label)).click();
@@ -77,10 +98,8 @@ public class MainPage {
 
     @Step("Проверить контакты поддержки в подвале: {contacts}")
     public MainPage checkFooterContacts(String... contacts) {
-        SelenideElement contactList = $(".contact-list").scrollIntoView(true);
-        for (String contact : contacts) {
-            contactList.shouldHave(text(contact));
-        }
+        $(".contact-list").scrollIntoView(true)
+                .shouldHave(Arrays.stream(contacts).map(Condition::text).toArray(WebElementCondition[]::new));
         return this;
     }
 
@@ -92,12 +111,7 @@ public class MainPage {
 
     @Step("Проверить, что заголовок страницы содержит \"{expected}\"")
     public MainPage checkTitleContains(String expected) {
-        Wait().withMessage("page title to contain \"" + expected + "\"")
-                .until(driver -> {
-                    String actual = driver.getTitle();
-                    return actual != null
-                            && actual.toLowerCase().contains(expected.toLowerCase());
-                });
+        $("title").shouldHave(attributeMatching("textContent", "(?is).*" + Pattern.quote(expected) + ".*"));
         return this;
     }
 }

@@ -12,12 +12,15 @@ import models.tariffs.Tariff;
 import models.tariffs.TariffGroup;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import pages.ArchivedTariffsPage;
+import pages.TariffDetailsPage;
 import pages.TariffsPage;
 
 import java.util.List;
 
 import static com.codeborne.selenide.Selenide.webdriver;
 import static com.codeborne.selenide.WebDriverConditions.urlContaining;
+import static org.assertj.core.api.Assertions.assertThat;
 
 @Epic("beeline.kz UI")
 @Feature("Страница тарифов")
@@ -28,6 +31,8 @@ public class TariffsTests extends TestBase {
     private static final String SOCIAL_GROUP = "Социальные тарифы";
 
     private final TariffsPage tariffsPage = new TariffsPage();
+    private final TariffDetailsPage tariffDetailsPage = new TariffDetailsPage();
+    private final ArchivedTariffsPage archivedTariffsPage = new ArchivedTariffsPage();
 
     @Test
     @DisplayName("Страница тарифов открывается и показывает заголовок «Тарифы для смартфона»")
@@ -57,10 +62,10 @@ public class TariffsTests extends TestBase {
         List<Tariff> tariffs = group(SMARTPHONE_GROUP).getTariffs();
 
         tariffsPage.openPage();
-        for (Tariff tariff : tariffs) {
+        assertThat(tariffs).isNotEmpty().allSatisfy(tariff -> {
             long price = tariff.getCostBlock().getNewCost().longValue();
             tariffsPage.checkTariffCard(tariff.getSlug(), tariff.getTitle(), String.valueOf(price));
-        }
+        });
     }
 
     @Test
@@ -68,12 +73,13 @@ public class TariffsTests extends TestBase {
     @Owner("Bexultan Imanbek")
     @Severity(SeverityLevel.NORMAL)
     void detailsButtonShouldOpenTariffPage() {
-        String slug = firstTariff(SMARTPHONE_GROUP).getSlug();
+        Tariff tariff = firstTariff(SMARTPHONE_GROUP);
 
         tariffsPage.openPage()
-                .clickDetails(slug);
+                .clickDetails(tariff.getSlug());
 
-        webdriver().shouldHave(urlContaining("/ru/products/tariffs/" + slug));
+        tariffDetailsPage.checkOpened(tariff.getTitle());
+        webdriver().shouldHave(urlContaining("/ru/products/tariffs/" + tariff.getSlug()));
     }
 
     @Test
@@ -96,12 +102,13 @@ public class TariffsTests extends TestBase {
         List<Tab> tabs = tariffTabs();
 
         // первая вкладка («Тарифы для смартфона») уже выбрана, проверяем остальные
-        for (Tab tab : tabs.subList(1, tabs.size())) {
+        assertThat(tabs.subList(1, tabs.size())).isNotEmpty().allSatisfy(tab -> {
             tariffsPage.openPage()
-                    .clickTab(tab.getName());
+                    .clickTab(tab.getName())
+                    .checkSelectedTab(tab.getName());
 
             webdriver().shouldHave(urlContaining(tab.getUrl()));
-        }
+        });
     }
 
     @Test
@@ -112,6 +119,7 @@ public class TariffsTests extends TestBase {
         tariffsPage.openPage()
                 .clickArchive();
 
+        archivedTariffsPage.checkOpened();
         webdriver().shouldHave(urlContaining("/ru/products/archived/tariffs"));
     }
 

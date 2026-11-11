@@ -3,21 +3,28 @@ package pages;
 import com.codeborne.selenide.SelenideElement;
 import io.qameta.allure.Step;
 
-import java.util.regex.Pattern;
-
-import static com.codeborne.selenide.Condition.*;
-import static com.codeborne.selenide.Selenide.*;
+import static com.codeborne.selenide.Condition.attribute;
+import static com.codeborne.selenide.Condition.empty;
+import static com.codeborne.selenide.Condition.exactText;
+import static com.codeborne.selenide.Condition.text;
+import static com.codeborne.selenide.Condition.visible;
+import static com.codeborne.selenide.Selenide.$;
+import static com.codeborne.selenide.Selenide.$$;
+import static com.codeborne.selenide.Selenide.open;
 
 public class TariffsPage {
 
-    private final SelenideElement pageTitle =
-            $$("body *")
-                    .filterBy(text("Тарифы для смартфона"))
-                    .first();
+    /** Тарифы лежат в карусели: чтобы карточка стала видимой, к ней нужно доскроллить. */
+    private static final String CAROUSEL_SCROLL = "{behavior: \"instant\", block: \"center\", inline: \"center\"}";
 
     /** Карточка тарифа: id карточки совпадает со slug тарифа из API. */
     private SelenideElement card(String slug) {
         return $("[id='" + slug + "']");
+    }
+
+    /** В API перед названием может стоять декоративный символ (например, «✦ »), в тексте страницы его нет. */
+    static String visibleTitle(String apiTitle) {
+        return apiTitle.replaceFirst("^[^\\p{L}\\p{N}]+", "");
     }
 
     @Step("Открыть страницу тарифов")
@@ -28,30 +35,24 @@ public class TariffsPage {
 
     @Step("Проверить, что отображается заголовок «Тарифы для смартфона»")
     public TariffsPage checkPageTitle() {
-        pageTitle.shouldBe(visible);
+        checkGroupTitleVisible("Тарифы для смартфона");
         return this;
     }
 
     @Step("Проверить, что отображается тариф «{tariffTitle}»")
     public TariffsPage checkTariffDisplayed(String tariffTitle) {
-        // в API перед названием может стоять декоративный символ (например, «✦ »), в тексте страницы его нет
-        String visibleTitle = tariffTitle.replaceFirst("^[^\\p{L}\\p{N}]+", "");
-        $$("body *")
-                .filterBy(text(visibleTitle))
-                .first()
+        $$(".product-card .heading-5")
+                .findBy(text(visibleTitle(tariffTitle)))
+                .scrollIntoView(CAROUSEL_SCROLL)
                 .shouldBe(visible);
         return this;
     }
 
     @Step("Проверить карточку тарифа «{title}» ({slug}): название и цена {price}")
     public TariffsPage checkTariffCard(String slug, String title, String price) {
-        // тарифы лежат в карусели: карточки за границей видимой области Selenium считает неотображаемыми,
-        // поэтому сверяем textContent, а не видимый текст
-        SelenideElement tariffCard = card(slug).should(exist);
-        tariffCard.$(".heading-5")
-                .shouldHave(attributeMatching("textContent", containing(title)));
-        tariffCard.$(".product-card__cost")
-                .shouldHave(attributeMatching("textContent", containing(price)));
+        SelenideElement tariffCard = card(slug).scrollIntoView(CAROUSEL_SCROLL).shouldBe(visible);
+        tariffCard.$(".heading-5").shouldHave(text(visibleTitle(title)));
+        tariffCard.$(".product-card__cost").shouldHave(text(price));
         return this;
     }
 
@@ -126,9 +127,5 @@ public class TariffsPage {
         first.$(".product-card__button-left").shouldBe(visible);
         first.$("button[data-bs-target]").shouldBe(visible);
         return this;
-    }
-
-    private static String containing(String text) {
-        return "(?s).*" + Pattern.quote(text) + ".*";
     }
 }

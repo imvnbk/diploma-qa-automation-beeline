@@ -8,6 +8,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.openqa.selenium.remote.DesiredCapabilities;
+import specs.RestAssuredSetup;
 import helpers.Attach;
 
 import java.util.Map;
@@ -26,6 +27,8 @@ public class TestBase {
 
     @BeforeAll
     static void setup() {
+        // UI-тесты берут ожидаемые данные из API, поэтому REST Assured нужен и здесь
+        RestAssuredSetup.configure();
         Configuration.browser = System.getProperty("browser", "chrome");
         Configuration.browserVersion = System.getProperty("browserVersion", "157.0");
         Configuration.browserSize = System.getProperty("browserSize", "1920x1080");

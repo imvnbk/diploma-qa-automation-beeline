@@ -5,10 +5,11 @@ import io.qameta.allure.Step;
 
 import java.time.Duration;
 
+import static com.codeborne.selenide.Condition.value;
 import static com.codeborne.selenide.Condition.visible;
 import static com.codeborne.selenide.Selenide.$;
-import static com.codeborne.selenide.Selenide.Wait;
-import static com.codeborne.selenide.WebDriverRunner.url;
+import static com.codeborne.selenide.Selenide.webdriver;
+import static com.codeborne.selenide.WebDriverConditions.urlContaining;
 
 public class LanguageSwitcher {
 
@@ -24,17 +25,26 @@ public class LanguageSwitcher {
     public LanguageSwitcher switchTo(String targetLang) {
         String otherLang = targetLang.equals("ru") ? "kk" : "ru";
         String urlPart = "/" + targetLang;
-        for (int attempt = 0; attempt < 15 && !url().contains(urlPart); attempt++) {
+        // сайт на Nuxt: до завершения гидратации страницы выбор языка не срабатывает,
+        // поэтому повторяем выбор, пока URL не сменится
+        for (int attempt = 0; attempt < 15; attempt++) {
             if (attempt > 0) {
                 languagePicker.selectOptionByValue(otherLang);
             }
             languagePicker.selectOptionByValue(targetLang);
             try {
-                Wait().withTimeout(Duration.ofSeconds(1))
-                        .until(driver -> driver.getCurrentUrl().contains(urlPart));
-            } catch (RuntimeException notHydratedYet) {
+                webdriver().shouldHave(urlContaining(urlPart), Duration.ofSeconds(1));
+                return this;
+            } catch (AssertionError notHydratedYet) {
+                // повторяем
             }
         }
+        return this;
+    }
+
+    @Step("Проверить, что в переключателе выбран язык \"{lang}\"")
+    public LanguageSwitcher checkSelected(String lang) {
+        languagePicker.shouldHave(value(lang));
         return this;
     }
 }

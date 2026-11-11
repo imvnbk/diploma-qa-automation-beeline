@@ -8,11 +8,12 @@ import java.util.List;
 import java.util.regex.Pattern;
 
 import static com.codeborne.selenide.CollectionCondition.exactTexts;
+import static com.codeborne.selenide.CollectionCondition.sizeGreaterThan;
 import static com.codeborne.selenide.Condition.attribute;
 import static com.codeborne.selenide.Condition.attributeMatching;
 import static com.codeborne.selenide.Condition.exactText;
-import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
+import static com.codeborne.selenide.Selectors.byText;
 import static com.codeborne.selenide.Selenide.$;
 import static com.codeborne.selenide.Selenide.$$;
 import static com.codeborne.selenide.Selenide.open;
@@ -38,7 +39,16 @@ public class HelpPage {
 
     @Step("Проверить, что на странице отображается категория «{categoryTitle}»")
     public HelpPage checkCategoryVisible(String categoryTitle) {
-        $$("body *").filterBy(text(categoryTitle)).first().shouldBe(visible);
+        $$(byText(categoryTitle)).findBy(visible).shouldBe(visible);
+        return this;
+    }
+
+    @Step("Проверить, что открыт раздел справки «{sectionTitle}»: виден заголовок, кнопка «Назад» и вопросы раздела")
+    public HelpPage checkSectionOpened(String sectionSlug, String sectionTitle) {
+        $(".help .heading-3.text-center").shouldBe(visible).shouldHave(exactText(sectionTitle));
+        $(".help .back-button").shouldBe(visible);
+        $("#acc-" + sectionSlug).shouldBe(visible);
+        $$("#acc-" + sectionSlug + " .help__subcat-btn").shouldHave(sizeGreaterThan(0));
         return this;
     }
 
