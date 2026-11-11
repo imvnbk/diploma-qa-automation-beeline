@@ -1,51 +1,38 @@
 package tests.api;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import io.qameta.allure.Epic;
 import io.qameta.allure.Feature;
 import io.qameta.allure.Owner;
 import io.qameta.allure.Severity;
 import io.qameta.allure.SeverityLevel;
-import models.common.Localization;
+import io.restassured.response.Response;
 import models.landings.response.LandingComponent;
 import models.landings.response.LandingPage;
 import models.landings.request.LandingQueryRequest;
+import models.landings.response.LandingQueryResponse;
 import models.landings.response.ServiceGroup;
 import models.landings.response.ServiceItem;
+import org.hamcrest.MatcherAssert;
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
-import java.util.HashSet;
+import java.util.Objects;
 import java.util.List;
-import java.util.Set;
 
 import static api.LandingsApi.getLanding;
-import static api.LandingsApi.queryLanding;
 import static api.LandingsApi.rawQuery;
+import static helpers.Json.toJson;
 import static io.qameta.allure.Allure.step;
+import static io.restassured.module.jsv.JsonSchemaValidator.matchesJsonSchemaInClasspath;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.hamcrest.Matchers.greaterThan;
 
-@Tag("api")
-@Epic("beeline.kz API")
 @Feature("POST /api/beeline-landings/query")
 @DisplayName("API: Контент страницы (POST /api/beeline-landings/query)")
 @Owner("Bexultan Imanbek")
-public class LandingsApiTests {
+public class LandingsApiTests extends ApiTestBase {
 
-    private static final ObjectMapper MAPPER = new ObjectMapper();
     private static final String SERVICE_GROUP_COMPONENT = "collection.service-group-landing";
-
-    /** Тело запроса в том виде, в каком его отправляет страница «Архив услуг». */
-    private static final String SITE_REQUEST_BODY = """
-            {"filters":{"slug":{"$eq":"archive"},"group":{"$eq":"products"},"subGroup":{"$eq":"services"}},
-             "pagination":{"pageSize":1},
-             "populate":{"components":true,"breadcrumbs":true,"seo":true},
-             "locale":"ru"}""";
 
     private static LandingQueryRequest archivePageRequest() {
         return LandingQueryRequest.forPage("products", "services", "archive", "ru");
@@ -62,7 +49,7 @@ public class LandingsApiTests {
         return page.getComponents().stream()
                 .filter(component -> SERVICE_GROUP_COMPONENT.equals(component.getComponent()))
                 .map(LandingComponent::getServiceGroups)
-                .filter(java.util.Objects::nonNull)
+                .filter(Objects::nonNull)
                 .flatMap(List::stream)
                 .toList();
     }
@@ -70,29 +57,30 @@ public class LandingsApiTests {
     private static List<ServiceItem> allServices(LandingPage page) {
         return serviceGroups(page).stream()
                 .map(ServiceGroup::getServices)
-                .filter(java.util.Objects::nonNull)
+                .filter(Objects::nonNull)
                 .flatMap(List::stream)
                 .toList();
     }
 
     @Test
-    @DisplayName("Модель запроса сериализуется в тело, как у сайта")
+    @DisplayName("Тело запроса из модели соответствует формату запроса сайта (JSON Schema)")
     @Severity(SeverityLevel.NORMAL)
-    void requestModelShouldMatchSiteRequestBody() throws Exception {
-        JsonNode actual = step("Сериализовать LandingQueryRequest", () ->
-                MAPPER.readTree(MAPPER.writeValueAsString(archivePageRequest())));
-        JsonNode expected = MAPPER.readTree(SITE_REQUEST_BODY);
+    void requestModelShouldMatchSiteRequestSchema() {
+        String body = toJson(archivePageRequest());
 
-        step("JSON модели равен телу запроса сайта", () ->
-                assertThat(actual).isEqualTo(expected));
+        step("Сериализованная модель удовлетворяет схеме тела запроса сайта", () ->
+                MatcherAssert.assertThat(body,
+                        matchesJsonSchemaInClasspath("schemas/landing-query-request-schema.json")));
     }
 
     @Test
     @DisplayName("Запрос контента страницы возвращает 200 и непустой JSON")
     @Severity(SeverityLevel.CRITICAL)
     void landingQueryShouldReturnJson() {
-        queryLanding(archivePageRequest())
-                .body("size()", greaterThan(0));
+        LandingQueryResponse response = getLanding(archivePageRequest());
+
+        step("В ответе есть данные страницы", () ->
+                assertThat(response.getData()).isNotEmpty());
     }
 
     @Test
@@ -119,13 +107,14 @@ public class LandingsApiTests {
                 .map(c -> c.getComponent() + " (service_groups=" + c.getServiceGroups() + ")")
                 .toList();
 
-        step("Группы услуг не пусты, у каждой title и services заполнены", () -> {
-            assertThat(groups).as("группы услуг; компоненты страницы: " + componentInfo).isNotEmpty();
-            for (ServiceGroup group : groups) {
-                assertThat(group.getTitle()).isNotBlank();
-                assertThat(group.getServices()).isNotEmpty();
-            }
-        });
+        step("Группы услуг не пусты, у каждой title и services заполнены", () ->
+                assertThat(groups)
+                        .as("группы услуг; компоненты страницы: " + componentInfo)
+                        .isNotEmpty()
+                        .allSatisfy(group -> {
+                            assertThat(group.getTitle()).isNotBlank();
+                            assertThat(group.getServices()).isNotEmpty();
+                        }));
     }
 
     @Test
@@ -134,15 +123,14 @@ public class LandingsApiTests {
     void everyServiceShouldHaveBasicFields() {
         List<ServiceItem> services = allServices(archivePage());
 
-        step("title, slug, locale = ru, fixedStyle = archive, costBlock не null", () -> {
-            for (ServiceItem service : services) {
-                assertThat(service.getTitle()).isNotBlank();
-                assertThat(service.getSlug()).isNotBlank();
-                assertThat(service.getLocale()).isEqualTo("ru");
-                assertThat(service.getFixedStyle()).isEqualTo("archive");
-                assertThat(service.getCostBlock()).as("costBlock услуги " + service.getSlug()).isNotNull();
-            }
-        });
+        step("title, slug, locale = ru, fixedStyle = archive, costBlock не null", () ->
+                assertThat(services).isNotEmpty().allSatisfy(service -> {
+                    assertThat(service.getTitle()).isNotBlank();
+                    assertThat(service.getSlug()).isNotBlank();
+                    assertThat(service.getLocale()).isEqualTo("ru");
+                    assertThat(service.getFixedStyle()).isEqualTo("archive");
+                    assertThat(service.getCostBlock()).as("costBlock услуги " + service.getSlug()).isNotNull();
+                }));
     }
 
     @Test
@@ -151,11 +139,8 @@ public class LandingsApiTests {
     void serviceSlugsShouldBeUnique() {
         List<ServiceItem> services = allServices(archivePage());
 
-        step("Количество уникальных slug совпадает с количеством услуг", () -> {
-            Set<String> slugs = new HashSet<>();
-            services.forEach(service -> slugs.add(service.getSlug()));
-            assertThat(slugs).hasSameSizeAs(services);
-        });
+        step("Среди slug услуг нет повторов", () ->
+                assertThat(services).extracting(ServiceItem::getSlug).doesNotHaveDuplicates());
     }
 
     @Test
@@ -164,14 +149,11 @@ public class LandingsApiTests {
     void servicePricesShouldBeNonNegative() {
         List<ServiceItem> services = allServices(archivePage());
 
-        step("costBlock.newCost >= 0, когда он задан", () -> {
-            for (ServiceItem service : services) {
-                Double price = service.getCostBlock().getNewCost();
-                if (price != null) {
-                    assertThat(price).as("цена услуги " + service.getSlug()).isGreaterThanOrEqualTo(0.0);
-                }
-            }
-        });
+        step("costBlock.newCost >= 0, когда он задан", () ->
+                assertThat(services)
+                        .extracting(service -> service.getCostBlock().getNewCost())
+                        .filteredOn(Objects::nonNull)
+                        .allSatisfy(price -> assertThat(price).isGreaterThanOrEqualTo(0.0)));
     }
 
     @Test
@@ -180,15 +162,13 @@ public class LandingsApiTests {
     void localizationsShouldMatchServices() {
         List<ServiceItem> services = allServices(archivePage());
 
-        step("У каждого перевода slug равен slug услуги, а locale отличается", () -> {
-            for (ServiceItem service : services) {
-                for (Localization localization : service.getLocalizations()) {
-                    assertThat(localization.getSlug()).isEqualTo(service.getSlug());
-                    assertThat(localization.getLocale()).isNotEqualTo(service.getLocale());
-                    assertThat(localization.getTitle()).isNotBlank();
-                }
-            }
-        });
+        step("У каждого перевода slug равен slug услуги, а locale отличается", () ->
+                assertThat(services).allSatisfy(service ->
+                        assertThat(service.getLocalizations()).allSatisfy(localization -> {
+                            assertThat(localization.getSlug()).isEqualTo(service.getSlug());
+                            assertThat(localization.getLocale()).isNotEqualTo(service.getLocale());
+                            assertThat(localization.getTitle()).isNotBlank();
+                        })));
     }
 
     // ---------- негативные сценарии ----------
@@ -211,7 +191,7 @@ public class LandingsApiTests {
     @DisplayName("Неизвестная локаль: сервер не падает и не возвращает страниц")
     @Severity(SeverityLevel.NORMAL)
     void unknownLocaleShouldNotReturnPages() {
-        var response = rawQuery(LandingQueryRequest.forPage("products", "services", "archive", "xx"));
+        Response response = rawQuery(LandingQueryRequest.forPage("products", "services", "archive", "xx"));
 
         step("Статус не 5xx", () -> assertThat(response.statusCode()).isLessThan(500));
         step("Если статус 200 — страниц в ответе нет", () -> {
@@ -225,7 +205,7 @@ public class LandingsApiTests {
     @DisplayName("Некорректный JSON в теле: сервер не отвечает ошибкой 5xx")
     @Severity(SeverityLevel.NORMAL)
     void malformedBodyShouldNotCauseServerError() {
-        var response = rawQuery("{not a json");
+        Response response = rawQuery("{not a json");
 
         step("Статус не 5xx", () -> assertThat(response.statusCode()).isLessThan(500));
     }

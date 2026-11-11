@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import pages.MainPage;
+import pages.components.PageHeading;
 
 import static com.codeborne.selenide.Selenide.webdriver;
 import static com.codeborne.selenide.WebDriverConditions.urlContaining;
@@ -20,6 +21,7 @@ import static com.codeborne.selenide.WebDriverConditions.urlContaining;
 public class MainPageTests extends TestBase {
 
     private final MainPage mainPage = new MainPage();
+    private final PageHeading pageHeading = new PageHeading();
 
     @Test
     @DisplayName("Главная страница открывается, шапка видна, URL содержит beeline.kz")
@@ -54,35 +56,39 @@ public class MainPageTests extends TestBase {
                 .checkTitleContains("Beeline");
     }
 
-    @ParameterizedTest(name = "Пункт меню «{0}» ведёт на {1}")
-    @DisplayName("Пункты меню навигации ведут на нужные страницы")
+    @ParameterizedTest(name = "Пункт меню «{0}» ведёт на {1} и показывает «{3}»")
+    @DisplayName("Пункты меню навигации открывают страницы с их содержимым")
     @Owner("Bexultan Imanbek")
     @Severity(SeverityLevel.CRITICAL)
     @CsvSource(delimiter = '|', value = {
-            "Тарифы и услуги | /ru/products/tariffs",
-            "Интернет дома + TV | /ru/internet-home-tv-mobile",
-            "Помощь | /ru/help"
+            "Тарифы и услуги | /ru/products/tariffs | .product__group-nav .heading-3 | Тарифы для смартфона",
+            // «Проверка возможности подключения» на этой странице лежит в скрытом модальном окне,
+            // поэтому проверяем вкладки раздела
+            "Интернет дома + TV | /ru/internet-home-tv-mobile | .product__tab-item | Мобильный интернет для Дома",
+            "Помощь | /ru/help | .help__title | Как мы можем помочь?"
     })
-    void navigationItemShouldOpenPage(String label, String expectedPath) {
+    void navigationItemShouldOpenPage(String label, String expectedPath, String selector, String expectedHeading) {
         mainPage.openRussianPage()
                 .clickNavigationItem(label);
 
+        pageHeading.checkVisible(selector, expectedHeading);
         webdriver().shouldHave(urlContaining(expectedPath));
     }
 
-    @ParameterizedTest(name = "Плитка «{0}» ведёт на {1}")
-    @DisplayName("Плитки быстрых действий ведут на нужные страницы")
+    @ParameterizedTest(name = "Плитка «{0}» ведёт на {1} и показывает «{3}»")
+    @DisplayName("Плитки быстрых действий открывают страницы с их содержимым")
     @Owner("Bexultan Imanbek")
     @Severity(SeverityLevel.NORMAL)
     @CsvSource(delimiter = '|', value = {
-            "Пополнить баланс | /ru/top-up",
-            "Тарифы | /ru/products/tariffs",
-            "Замена SIM | /ru/sim-restore"
+            "Пополнить баланс | /ru/top-up | h1, h2, h3, h4 | Пополнение баланса",
+            "Тарифы | /ru/products/tariffs | .product__group-nav .heading-3 | Тарифы для смартфона",
+            "Замена SIM | /ru/sim-restore | h1, h2, h3, h4 | Как восстановить SIM карту?"
     })
-    void quickTileShouldOpenPage(String label, String expectedPath) {
+    void quickTileShouldOpenPage(String label, String expectedPath, String selector, String expectedHeading) {
         mainPage.openRussianPage()
                 .clickQuickTile(label);
 
+        pageHeading.checkVisible(selector, expectedHeading);
         webdriver().shouldHave(urlContaining(expectedPath));
     }
 

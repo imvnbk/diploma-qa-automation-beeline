@@ -1,18 +1,16 @@
 package tests.api;
 
-import io.qameta.allure.Epic;
 import io.qameta.allure.Feature;
 import io.qameta.allure.Owner;
 import io.qameta.allure.Severity;
 import io.qameta.allure.SeverityLevel;
 import models.help.HelpCategory;
 import models.help.HelpData;
+import models.help.HelpSubCategory;
 import models.help.SearchVariant;
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
-import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -20,12 +18,10 @@ import static api.HelpApi.getHelp;
 import static io.qameta.allure.Allure.step;
 import static org.assertj.core.api.Assertions.assertThat;
 
-@Tag("api")
-@Epic("beeline.kz API")
 @Feature("GET /api/help")
 @Owner("Bexultan Imanbek")
 @DisplayName("API: Страница помощи (/api/help)")
-public class HelpApiTests {
+public class HelpApiTests extends ApiTestBase {
 
     private static final String CATEGORY_LINK_PREFIX = "/help?category=";
 
@@ -59,13 +55,12 @@ public class HelpApiTests {
     void everyCategoryShouldHaveTitleSlugAndSubCategories() {
         HelpData data = getHelp("ru").getData();
 
-        step("title, slug заполнены, subCategory не пуст", () -> {
-            for (HelpCategory category : data.getCategory()) {
-                assertThat(category.getTitle()).isNotBlank();
-                assertThat(category.getSlug()).isNotBlank();
-                assertThat(category.getSubCategory()).isNotEmpty();
-            }
-        });
+        step("title, slug заполнены, subCategory не пуст", () ->
+                assertThat(data.getCategory()).isNotEmpty().allSatisfy(category -> {
+                    assertThat(category.getTitle()).isNotBlank();
+                    assertThat(category.getSlug()).isNotBlank();
+                    assertThat(category.getSubCategory()).isNotEmpty();
+                }));
     }
 
     @Test
@@ -74,22 +69,20 @@ public class HelpApiTests {
     void slugsShouldBeUnique() {
         HelpData data = getHelp("ru").getData();
 
-        step("slug категорий не повторяются", () -> {
-            Set<String> slugs = new HashSet<>();
-            data.getCategory().forEach(c -> slugs.add(c.getSlug()));
-            assertThat(slugs).hasSameSizeAs(data.getCategory());
-        });
+        step("slug категорий не повторяются", () ->
+                assertThat(data.getCategory()).extracting(HelpCategory::getSlug).doesNotHaveDuplicates());
 
         // между разными категориями slug подкатегорий повторяются (topquestions, contacts…) — это нормально
-        step("slug подкатегорий не повторяются внутри одной категории", () -> {
-            for (HelpCategory category : data.getCategory()) {
-                Set<String> slugs = new HashSet<>();
-                category.getSubCategory().forEach(s -> slugs.add(s.getSlug()));
-                assertThat(slugs).as("slug подкатегорий в «" + category.getSlug() + "»")
-                        .hasSameSizeAs(category.getSubCategory());
-                category.getSubCategory().forEach(s -> assertThat(s.getTitle()).isNotBlank());
-            }
-        });
+        step("slug подкатегорий не повторяются внутри одной категории, title заполнены", () ->
+                assertThat(data.getCategory()).allSatisfy(category -> {
+                    assertThat(category.getSubCategory())
+                            .as("подкатегории в «" + category.getSlug() + "»")
+                            .extracting(HelpSubCategory::getSlug)
+                            .doesNotHaveDuplicates();
+                    assertThat(category.getSubCategory())
+                            .extracting(HelpSubCategory::getTitle)
+                            .allSatisfy(title -> assertThat(title).isNotBlank());
+                }));
     }
 
     @Test
@@ -100,11 +93,10 @@ public class HelpApiTests {
 
         step("placeholder не пуст, variants не пуст, у каждого label и url заполнены", () -> {
             assertThat(data.getSearch().getPlaceholder()).isNotBlank();
-            assertThat(data.getSearch().getVariants()).isNotEmpty();
-            for (SearchVariant variant : data.getSearch().getVariants()) {
+            assertThat(data.getSearch().getVariants()).isNotEmpty().allSatisfy(variant -> {
                 assertThat(variant.getLabel()).isNotBlank();
                 assertThat(variant.getUrl()).isNotBlank();
-            }
+            });
         });
     }
 
@@ -117,14 +109,13 @@ public class HelpApiTests {
                 .map(HelpCategory::getSlug)
                 .collect(Collectors.toSet());
 
-        step("Для ссылок вида /help?category=<slug> такая категория существует", () -> {
-            for (SearchVariant variant : data.getSearch().getVariants()) {
-                if (variant.getUrl().startsWith(CATEGORY_LINK_PREFIX)) {
-                    String slug = variant.getUrl().substring(CATEGORY_LINK_PREFIX.length()).split("[&#]")[0];
-                    assertThat(categorySlugs).as("категория из ссылки «" + variant.getUrl() + "»").contains(slug);
-                }
-            }
-        });
+        step("Для ссылок вида /help?category=<slug> такая категория существует", () ->
+                assertThat(data.getSearch().getVariants())
+                        .extracting(SearchVariant::getUrl)
+                        .filteredOn(url -> url.startsWith(CATEGORY_LINK_PREFIX))
+                        .allSatisfy(url -> assertThat(categorySlugs)
+                                .as("категория из ссылки «" + url + "»")
+                                .contains(url.substring(CATEGORY_LINK_PREFIX.length()).split("[&#]")[0])));
     }
 
     @Test

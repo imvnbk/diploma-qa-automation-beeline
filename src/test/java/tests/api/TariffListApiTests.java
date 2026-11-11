@@ -1,6 +1,5 @@
 package tests.api;
 
-import io.qameta.allure.Epic;
 import io.qameta.allure.Feature;
 import io.qameta.allure.Owner;
 import io.qameta.allure.Severity;
@@ -9,23 +8,18 @@ import models.tariffs.Tariff;
 import models.tariffs.TariffGroup;
 import models.tariffs.TariffListData;
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import static api.TariffsApi.getTariffList;
 import static io.qameta.allure.Allure.step;
 import static org.assertj.core.api.Assertions.assertThat;
 
-@Tag("api")
-@Epic("beeline.kz API")
 @Feature("GET /api/tariff-list")
 @Owner("Bexultan Imanbek")
 @DisplayName("API: Список тарифов (/api/tariff-list)")
-public class TariffListApiTests {
+public class TariffListApiTests extends ApiTestBase {
 
     @Test
     @DisplayName("Список тарифов возвращается для локали ru")
@@ -59,48 +53,41 @@ public class TariffListApiTests {
     void everyGroupShouldHaveTitleAndTariffs() {
         List<TariffGroup> groups = getTariffList("ru").getData().getTariffGroups();
 
-        step("title группы заполнен, tariffs не пуст", () -> {
-            for (TariffGroup group : groups) {
-                assertThat(group.getTitle()).isNotBlank();
-                assertThat(group.getTariffs()).isNotEmpty();
-            }
-        });
+        step("title группы заполнен, tariffs не пуст", () ->
+                assertThat(groups).isNotEmpty().allSatisfy(group -> {
+                    assertThat(group.getTitle()).isNotBlank();
+                    assertThat(group.getTariffs()).isNotEmpty();
+                }));
     }
 
     @Test
     @DisplayName("У каждого тарифа есть название, slug и неотрицательная стоимость")
     @Severity(SeverityLevel.CRITICAL)
     void everyTariffShouldHaveTitleSlugAndCost() {
-        List<TariffGroup> groups = getTariffList("ru").getData().getTariffGroups();
+        List<Tariff> tariffs = allTariffs();
 
-        step("title, slug и costBlock.newCost заполнены корректно", () -> {
-            for (TariffGroup group : groups) {
-                for (Tariff tariff : group.getTariffs()) {
+        step("title, slug и costBlock.newCost заполнены корректно", () ->
+                assertThat(tariffs).isNotEmpty().allSatisfy(tariff -> {
                     assertThat(tariff.getTitle()).isNotBlank();
                     assertThat(tariff.getSlug()).isNotBlank();
                     assertThat(tariff.getCostBlock()).isNotNull();
                     assertThat(tariff.getCostBlock().getNewCost()).isNotNull().isGreaterThanOrEqualTo(0.0);
-                }
-            }
-        });
+                }));
     }
 
     @Test
     @DisplayName("slug тарифов уникальны")
     @Severity(SeverityLevel.NORMAL)
     void tariffSlugsShouldBeUnique() {
-        List<TariffGroup> groups = getTariffList("ru").getData().getTariffGroups();
+        List<Tariff> tariffs = allTariffs();
 
-        step("Количество уникальных slug совпадает с количеством тарифов", () -> {
-            Set<String> slugs = new HashSet<>();
-            int total = 0;
-            for (TariffGroup group : groups) {
-                for (Tariff tariff : group.getTariffs()) {
-                    slugs.add(tariff.getSlug());
-                    total++;
-                }
-            }
-            assertThat(slugs).hasSize(total);
-        });
+        step("Среди slug тарифов нет повторов", () ->
+                assertThat(tariffs).extracting(Tariff::getSlug).doesNotHaveDuplicates());
+    }
+
+    private static List<Tariff> allTariffs() {
+        return getTariffList("ru").getData().getTariffGroups().stream()
+                .flatMap(group -> group.getTariffs().stream())
+                .toList();
     }
 }

@@ -77,12 +77,12 @@ HTTP-запросы и ответы API). Ручные тест-кейсы: [doc
 | 5а | `HelpTests.firstCategoryFromApiShouldBeDisplayed` | Название первой категории из `/api/help` отображается на странице помощи (UI + API) |
 | 5б | `HelpTests.searchBlockFromApiShouldBeDisplayed` | Поле поиска («Что ищете?») и быстрые варианты из `/api/help` отображаются на странице помощи (UI + API) |
 | 5в | `HelpTests.quickVariantLinksShouldMatchApi` | Ссылки быстрых вариантов поиска на странице совпадают с `/api/help` (UI + API) |
-| 5г | `HelpTests.quickVariantShouldOpenCategory` | Клик по быстрому варианту («узнать свой тариф») открывает нужную категорию справки |
-| 6–7 | `LanguageSwitchTests.shouldSwitchLanguage` (параметризованный) | Переключение языка `kk → ru` и `ru → kk`, URL содержит целевую локаль |
+| 5г | `HelpTests.quickVariantShouldOpenSection` | Клик по быстрому варианту («узнать свой тариф») открывает нужный раздел справки: заголовок раздела из `/api/help`, кнопка «Назад», вопросы раздела (UI + API) |
+| 6–7 | `LanguageSwitchTests.shouldSwitchLanguage` (параметризованный) | Переключение языка `kk → ru` и `ru → kk`: URL содержит целевую локаль, в переключателе выбран язык, меню на нужном языке |
 
 ### API-тесты (`@Tag("api")`)
 
-Тестируются публичные `GET`-эндпоинты (Strapi CMS сайта). Везде проверяются статус `200`, `Content-Type: application/json` и время ответа < 15 с (запас на «холодный» первый запрос с CI-агента) (`ResponseSpecification`).
+Тестируются публичные `GET`-эндпоинты (Strapi CMS сайта). Везде проверяются статус `200`, `Content-Type: application/json` и время ответа < 5 с (`ResponseSpecification`, значение можно изменить через `-DresponseTimeoutMs`). Общая настройка REST Assured (адрес, `/api`, заголовки, Allure-фильтр) находится в базовом классе `ApiTestBase`.
 
 **`GET /api/ui-texts`** — `UiTextsApiTests`
 
@@ -120,7 +120,7 @@ HTTP-запросы и ответы API). Ручные тест-кейсы: [doc
 
 | Тест | Проверка |
 |------|----------|
-| `requestModelShouldMatchSiteRequestBody` | Модель `LandingQueryRequest` (фильтры `$eq`, пагинация, populate, локаль) сериализуется в тело, равное телу запроса сайта |
+| `requestModelShouldMatchSiteRequestSchema` | Тело из модели `LandingQueryRequest` (фильтры `$eq`, пагинация, populate, локаль) соответствует JSON-схеме `schemas/landing-query-request-schema.json` (формат запроса сайта) |
 | `landingQueryShouldReturnJson` | Реальный `POST` с телом из модели возвращает `200`, JSON и непустой ответ |
 | `responseShouldContainRequestedPage` | В ответе ровно одна страница с `slug = archive`, `group = products`, `subGroup = services`, `locale = ru` |
 | `pageShouldContainServiceGroups` | Есть группы услуг; у каждой заполнены название и услуги |
@@ -148,8 +148,9 @@ HTTP-запросы и ответы API). Ручные тест-кейсы: [doc
 
 | Тест | Проверка |
 |------|----------|
-| `requestShouldBeSerializedToExpectedJson` | Модель `PaymentRequest` (Lombok `@Builder`) сериализуется в JSON с полями `msisdn`, `amount`, `captchaCode` нужных типов |
-| `siteJsonShouldBeDeserializedToModel` | JSON формата сайта десериализуется в модель и равен собранной через builder |
+| `requestBodyShouldMatchJsonSchema` | Тело, собранное из модели `PaymentRequest` (Lombok `@Builder`), соответствует JSON-схеме `schemas/payment-request-schema.json` |
+| `invalidMsisdnShouldNotMatchJsonSchema` | Номер неверного формата не проходит схему (4 набора) |
+| `requestWithoutCaptchaShouldNotMatchJsonSchema` | Тело без `captchaCode` не проходит схему |
 
 > **Почему запрос не отправляется:** `POST /telco/payment` — оплата (финансовая операция) на боевом сайте, защищённая капчей
 > (`captchaCode`), поэтому он не вызывается из автотестов. Для него сделана только модель тела запроса и проверка её формата.
@@ -166,13 +167,13 @@ HTTP-запросы и ответы API). Ручные тест-кейсы: [doc
 
 ## ✅ Результаты последнего прогона
 
-Все **74 теста** (26 UI + 48 API) пройдены успешно (по данным локальных прогонов `./gradlew clean test`):
+Все **78 тестов** (26 UI + 52 API) пройдены успешно (по данным локальных прогонов `./gradlew clean test`):
 
 | Набор | Тестов | ✅ Passed | ❌ Failed | ⏭ Skipped |
 |-------|:------:|:--------:|:--------:|:---------:|
 | UI (`uiTest`) | 26 | 26 | 0 | 0 |
-| API (`apiTest`) | 48 | 48 | 0 | 0 |
-| **Всего** | **74** | **74** | **0** | **0** |
+| API (`apiTest`) | 52 | 52 | 0 | 0 |
+| **Всего** | **78** | **78** | **0** | **0** |
 
 <p align="center">
   <img title="Allure Graphs" src="media/screens/allure-graphs.png" width="80%">
@@ -264,7 +265,8 @@ src/test
 │   │       ├── request        # LandingQueryRequest, LandingFilters, EqFilter, LandingPopulate, RequestPagination
 │   │       └── response       # LandingQueryResponse, LandingPage, LandingComponent, ServiceGroup, ServiceItem
 │   ├── specs
-│   │   └── BaseSpec.java      # RequestSpecification / ResponseSpecification
+│   │   ├── ResponseSpecs.java     # ResponseSpecification (статус, Content-Type, время ответа)
+│   │   └── RestAssuredSetup.java  # общая настройка REST Assured (вызывают ApiTestBase и UI TestBase)
 │   ├── helpers
 │   │   ├── Attach.java                 # вложения в Allure: скриншот, source, логи, видео
 │   │   └── CustomAllureListener.java   # rest-assured листенер с custom-шаблонами
@@ -272,16 +274,20 @@ src/test
 │   │   ├── MainPage.java          # главная: header, заголовок, меню, плитки, подвал, личный кабинет
 │   │   ├── TariffsPage.java       # тарифы: карточки, вкладки, архив, группы, кнопки «Подробнее»/«Подключить»
 │   │   ├── HelpPage.java          # помощь: заголовок, категории, поиск и быстрые варианты
+│   │   ├── TariffDetailsPage.java # страница тарифа (проверка открытия по заголовку)
+│   │   ├── ArchivedTariffsPage.java # архив тарифов (алфавитные группы и карточки архивных тарифов)
 │   │   └── components
-│   │       └── LanguageSwitcher.java   # переключатель языка (kk/ru)
+│   │       ├── LanguageSwitcher.java   # переключатель языка (kk/ru)
+│   │       └── PageHeading.java        # проверка заголовка открытой страницы
 │   └── tests
 │       ├── ui
 │       │   ├── TestBase.java          # конфигурация Selenide/Selenoid + Allure listener (@Tag("ui"))
 │       │   └── MainPageTests / TariffsTests / HelpTests / LanguageSwitchTests
-│       └── api                        # @Tag("api")
+│       └── api
+│           ├── ApiTestBase.java       # @Tag("api"), настройка REST Assured (baseURI, basePath, фильтры)
 │           └── UiTextsApiTests / TariffListApiTests / HelpApiTests / LandingsApiTests / GlobalSearchApiTests / PaymentRequestModelTests
 └── resources
-    ├── schemas/ui-texts-schema.json          # JSON-схема ответа
+    ├── schemas                               # JSON-схемы: ui-texts, payment-request, landing-query-request
     └── tpl/http-request.ftl, http-response.ftl   # шаблоны вложений Allure
 ```
 

@@ -7,6 +7,7 @@ import io.qameta.allure.Owner;
 import io.qameta.allure.Severity;
 import io.qameta.allure.SeverityLevel;
 import io.qameta.allure.Step;
+import models.help.HelpSubCategory;
 import models.help.HelpData;
 import models.help.HelpSearch;
 import models.help.SearchVariant;
@@ -14,13 +15,19 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import pages.HelpPage;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import static com.codeborne.selenide.Selenide.webdriver;
 import static com.codeborne.selenide.WebDriverConditions.urlContaining;
+import static org.assertj.core.api.Assertions.assertThat;
 
 @Epic("beeline.kz UI")
 @Feature("Страница помощи")
 @DisplayName("UI: Страница помощи")
 public class HelpTests extends TestBase {
+
+    private static final Pattern SECTION_LINK = Pattern.compile("^/help\\?category=([^&#]+)&section=([^&#]+)");
 
     private final HelpPage helpPage = new HelpPage();
 
@@ -69,27 +76,38 @@ public class HelpTests extends TestBase {
         HelpSearch search = helpFromApi().getSearch();
 
         helpPage.openPage();
-        for (SearchVariant variant : search.getVariants()) {
-            helpPage.checkQuickVariantLink(variant.getLabel(), expectedHrefPart(variant.getUrl()));
-        }
+        assertThat(search.getVariants()).isNotEmpty().allSatisfy(variant ->
+                helpPage.checkQuickVariantLink(variant.getLabel(), expectedHrefPart(variant.getUrl())));
     }
 
     @Test
-    @DisplayName("Клик по быстрому варианту поиска открывает нужную категорию справки")
+    @DisplayName("Клик по быстрому варианту поиска открывает нужный раздел справки")
     @Owner("Bexultan Imanbek")
     @Severity(SeverityLevel.NORMAL)
-    void quickVariantShouldOpenCategory() {
-        SearchVariant variant = helpFromApi().getSearch().getVariants().stream()
-                .filter(v -> v.getUrl().startsWith("/help?"))
+    void quickVariantShouldOpenSection() {
+        HelpData help = helpFromApi();
+        // "/help?category=mobile&section=topquestions#tariff": категория mobile, раздел topquestions
+        SearchVariant variant = help.getSearch().getVariants().stream()
+                .filter(v -> SECTION_LINK.matcher(v.getUrl()).find())
                 .findFirst()
-                .orElseThrow(() -> new AssertionError("В API нет внутренних быстрых вариантов поиска"));
-        // "/help?category=mobile&section=topquestions#tariff" -> "category=mobile&section=topquestions"
-        String query = variant.getUrl().substring("/help?".length()).split("#")[0];
+                .orElseThrow(() -> new AssertionError("В API нет быстрых вариантов со ссылкой на раздел справки"));
+        Matcher link = SECTION_LINK.matcher(variant.getUrl());
+        link.find();
+        String categorySlug = link.group(1);
+        String sectionSlug = link.group(2);
+        String sectionTitle = help.getCategory().stream()
+                .filter(category -> category.getSlug().equals(categorySlug))
+                .flatMap(category -> category.getSubCategory().stream())
+                .filter(subCategory -> subCategory.getSlug().equals(sectionSlug))
+                .map(HelpSubCategory::getTitle)
+                .findFirst()
+                .orElseThrow(() -> new AssertionError("В API нет раздела из ссылки " + variant.getUrl()));
 
         helpPage.openPage()
-                .clickQuickVariant(variant.getLabel());
+                .clickQuickVariant(variant.getLabel())
+                .checkSectionOpened(sectionSlug, sectionTitle);
 
-        webdriver().shouldHave(urlContaining(query));
+        webdriver().shouldHave(urlContaining("category=" + categorySlug + "&section=" + sectionSlug));
     }
 
     /** Внутренние ссылки API приходят без локали (/help?...), а на странице — с ней (/ru/help?...). */

@@ -1,0 +1,12 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "description": "Тело запроса POST /telco/payment в том виде, в каком его отправляет сайт",
+  "type": "object",
+  "required": ["msisdn", "amount", "captchaCode"],
+  "additionalProperties": false,
+  "properties": {
+    "msisdn": { "type": "string", "pattern": "^7\\d{9}$" },
+    "amount": { "type": "integer", "minimum": 1 },
+    "captchaCode": { "type": "string", "minLength": 1 }
+  }
+}

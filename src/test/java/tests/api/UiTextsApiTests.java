@@ -1,40 +1,42 @@
 package tests.api;
 
-import io.qameta.allure.Epic;
 import io.qameta.allure.Feature;
 import io.qameta.allure.Owner;
 import io.qameta.allure.Severity;
 import io.qameta.allure.SeverityLevel;
+import io.restassured.response.Response;
 import models.uitexts.UiTextItem;
+import org.hamcrest.MatcherAssert;
 import models.uitexts.UiTextsResponse;
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static api.UiTextsApi.getUiTexts;
-import static api.UiTextsApi.getUiTextsRaw;
+import static api.UiTextsApi.getUiTextsResponse;
 import static io.qameta.allure.Allure.step;
 import static io.restassured.module.jsv.JsonSchemaValidator.matchesJsonSchemaInClasspath;
 import static org.assertj.core.api.Assertions.assertThat;
 
-@Tag("api")
-@Epic("beeline.kz API")
 @Feature("GET /api/ui-texts")
 @Owner("Bexultan Imanbek")
 @DisplayName("API: UI-тексты (/api/ui-texts)")
-public class UiTextsApiTests {
+public class UiTextsApiTests extends ApiTestBase {
 
     @ParameterizedTest(name = "Ответ ui-texts соответствует JSON-схеме (locale={0})")
     @ValueSource(strings = {"ru", "kk"})
     @DisplayName("Ответ соответствует JSON-схеме")
     @Severity(SeverityLevel.CRITICAL)
     void responseShouldMatchJsonSchema(String locale) {
-        getUiTextsRaw(locale)
-                .body(matchesJsonSchemaInClasspath("schemas/ui-texts-schema.json"));
+        Response response = getUiTextsResponse(locale);
+
+        step("Тело ответа соответствует JSON-схеме", () ->
+                MatcherAssert.assertThat(response.asString(),
+                        matchesJsonSchemaInClasspath("schemas/ui-texts-schema.json")));
     }
 
     @ParameterizedTest(name = "Все элементы ui-texts имеют locale={0}, непустые code и text")
@@ -47,13 +49,12 @@ public class UiTextsApiTests {
         step("Список текстов не пустой", () ->
                 assertThat(response.getData()).isNotEmpty());
 
-        step("У каждого элемента locale = " + locale + ", code и text заполнены", () -> {
-            for (UiTextItem item : response.getData()) {
-                assertThat(item.getLocale()).isEqualTo(locale);
-                assertThat(item.getCode()).isNotBlank();
-                assertThat(item.getText()).isNotBlank();
-            }
-        });
+        step("У каждого элемента locale = " + locale + ", code и text заполнены", () ->
+                assertThat(response.getData()).allSatisfy(item -> {
+                    assertThat(item.getLocale()).isEqualTo(locale);
+                    assertThat(item.getCode()).isNotBlank();
+                    assertThat(item.getText()).isNotBlank();
+                }));
     }
 
     /**
@@ -73,14 +74,11 @@ public class UiTextsApiTests {
 
         step("Повторяющиеся code входят в список известных дублей", () -> {
             Set<String> seen = new HashSet<>();
-            Set<String> duplicates = new HashSet<>();
-            response.getData().forEach(item -> {
-                if (!seen.add(item.getCode())) {
-                    duplicates.add(item.getCode());
-                }
-            });
-            duplicates.removeAll(KNOWN_DUPLICATE_CODES);
-            assertThat(duplicates).as("новые дубли code").isEmpty();
+            Set<String> duplicates = response.getData().stream()
+                    .map(UiTextItem::getCode)
+                    .filter(code -> !seen.add(code))
+                    .collect(Collectors.toSet());
+            assertThat(duplicates).as("новые дубли code").isSubsetOf(KNOWN_DUPLICATE_CODES);
         });
     }
 

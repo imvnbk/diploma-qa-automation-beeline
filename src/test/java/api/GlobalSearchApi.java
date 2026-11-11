@@ -5,14 +5,13 @@ import io.restassured.response.Response;
 import models.search.GlobalSearchResponse;
 
 import static io.restassured.RestAssured.given;
-import static specs.BaseSpec.okResponseSpec;
-import static specs.BaseSpec.requestSpec;
+import static specs.ResponseSpecs.okResponseSpec;
 
 public class GlobalSearchApi {
 
     @Step("GET /api/global-search/search?q={query}&limit={limit}&locale={locale}")
     public static GlobalSearchResponse search(String query, int limit, String locale) {
-        return given(requestSpec)
+        return given()
                 .queryParam("q", query)
                 .queryParam("limit", limit)
                 .queryParam("locale", locale)
@@ -26,7 +25,7 @@ public class GlobalSearchApi {
     /** Запрос без проверки статуса — для негативных сценариев. */
     @Step("GET /api/global-search/search?q={query} (без проверки статуса)")
     public static Response rawSearch(String query) {
-        return given(requestSpec)
+        return given()
                 .queryParam("q", query)
                 .queryParam("limit", 10)
                 .queryParam("locale", "ru")
